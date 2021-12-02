@@ -150,6 +150,19 @@ void mail_count( CHAR_DATA * ch );
 
 int port;
 
+
+// prool begin
+// prool here: http://mud.kharkov.org proolix@gmail.com
+int isprool(char c) // prool's modif for isprint
+{
+if ((c<32)&&(c>=0)) return 0;
+if (c==-1) return 0;
+if (c==-2) return 0;
+if (c==-3) return 0;
+return 1;
+}
+// prool end
+
 /*
  * Clean all memory on exit to help find leaks
  * Yeah I know, one big ugly function -Druid
@@ -1401,7 +1414,7 @@ void read_from_buffer( DESCRIPTOR_DATA * d )
       }
       else if( d->inbuf[i] == '\b' && k > 0 )
          --k;
-      else if( isascii( d->inbuf[i] ) && isprint( d->inbuf[i] ) )
+      else if( isprool(d->inbuf[i]) /*isascii( d->inbuf[i] ) && isprint( d->inbuf[i] ) */ ) // prool: allow full 8bit chars
          d->incomm[k++] = d->inbuf[i];
    }
 
