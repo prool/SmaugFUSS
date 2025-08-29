@@ -376,10 +376,10 @@ int dispel_casting( AFFECT_DATA * paf, CHAR_DATA * ch, CHAR_DATA * victim, int a
    set_char_color( AT_HITME, victim );
 
    if( !can_see( ch, victim ) )
-      mudstrlcpy( buf, "Someone", MAX_STRING_LENGTH );
+      strlcpy( buf, "Someone", MAX_STRING_LENGTH );
    else
    {
-      mudstrlcpy( buf, ( IS_NPC( victim ) ? victim->short_descr : victim->name ), MAX_STRING_LENGTH );
+      strlcpy( buf, ( IS_NPC( victim ) ? victim->short_descr : victim->name ), MAX_STRING_LENGTH );
       buf[0] = toupper( buf[0] );
    }
 
@@ -629,7 +629,7 @@ void say_spell( CHAR_DATA * ch, int sn )
       {
          if( !str_prefix( syl_table[iSyl].old, pName ) )
          {
-            mudstrlcat( buf, syl_table[iSyl].cnew, MAX_INPUT_LENGTH );
+            strlcat( buf, syl_table[iSyl].cnew, MAX_INPUT_LENGTH );
             break;
          }
       }
@@ -646,7 +646,6 @@ void say_spell( CHAR_DATA * ch, int sn )
       if( rch != ch )
          act( AT_MAGIC, ch->Class == rch->Class ? buf : buf2, ch, NULL, rch, TO_VICT );
    }
-   return;
 }
 
 /*
@@ -865,7 +864,7 @@ int dice_parse( CHAR_DATA * ch, int level, const char *texp )
 {
    char buf[MAX_INPUT_LENGTH];
 
-   mudstrlcpy( buf, texp, MAX_INPUT_LENGTH );
+   strlcpy( buf, texp, MAX_INPUT_LENGTH );
    return rd_parse( ch, level, buf );
 }
 
@@ -1361,7 +1360,7 @@ const char *ranged_target_name = NULL;
 /*
  * Cast a spell.  Multi-caster and component support by Thoric
  */
-void do_cast( CHAR_DATA* ch, const char* argument)
+void do_cast( CHAR_DATA* ch, const char* argument )
 {
    char arg1[MAX_INPUT_LENGTH];
    char arg2[MAX_INPUT_LENGTH];
@@ -1402,7 +1401,7 @@ void do_cast( CHAR_DATA* ch, const char* argument)
          one_argument( target_name, arg2 );
          if( ranged_target_name )
             DISPOSE( ranged_target_name );
-         ranged_target_name = str_dup( target_name );
+         ranged_target_name = strdup( target_name );
 
          if( arg1[0] == '\0' )
          {
@@ -1600,7 +1599,7 @@ void do_cast( CHAR_DATA* ch, const char* argument)
          act( AT_MAGIC, "You begin to chant...", ch, NULL, NULL, TO_CHAR );
          act( AT_MAGIC, "$n begins to chant...", ch, NULL, NULL, TO_ROOM );
          snprintf( staticbuf, MAX_STRING_LENGTH, "%s %s", arg2, target_name );
-         ch->alloc_ptr = str_dup( staticbuf );
+         ch->alloc_ptr = strdup( staticbuf );
          ch->tempnum = sn;
          return;
       case SUB_TIMER_DO_ABORT:
@@ -1642,7 +1641,7 @@ void do_cast( CHAR_DATA* ch, const char* argument)
          }
          mana = IS_NPC( ch ) ? 0 : UMAX( skill->min_mana, 100 / ( 2 + ch->level - skill->skill_level[ch->Class] ) );
          blood = UMAX( 1, ( mana + 4 ) / 8 );
-         mudstrlcpy( staticbuf, ch->alloc_ptr, MAX_INPUT_LENGTH );
+         strlcpy( staticbuf, ch->alloc_ptr, MAX_INPUT_LENGTH );
          target_name = one_argument( staticbuf, arg2 );
          DISPOSE( ch->alloc_ptr );
          ch->substate = SUB_NONE;
@@ -1814,7 +1813,6 @@ void do_cast( CHAR_DATA* ch, const char* argument)
    else
       learn_from_failure( ch, sn );
 
-
    /*
     * favor adjustments 
     */
@@ -1846,8 +1844,6 @@ void do_cast( CHAR_DATA* ch, const char* argument)
          }
       }
    }
-
-   return;
 }
 
 /*
@@ -2018,8 +2014,6 @@ ch_ret obj_cast_spell( int sn, int level, CHAR_DATA * ch, CHAR_DATA * victim, OB
    return retcode;
 }
 
-
-
 /*
  * Spell functions.
  */
@@ -2033,9 +2027,6 @@ ch_ret spell_acid_blast( int sn, int level, CHAR_DATA * ch, void *vo )
       dam /= 2;
    return damage( ch, victim, dam, sn );
 }
-
-
-
 
 ch_ret spell_blindness( int sn, int level, CHAR_DATA * ch, void *vo )
 {
@@ -2075,7 +2066,6 @@ ch_ret spell_blindness( int sn, int level, CHAR_DATA * ch, void *vo )
    }
    return rNONE;
 }
-
 
 ch_ret spell_burning_hands( int sn, int level, CHAR_DATA * ch, void *vo )
 {
@@ -2860,8 +2850,6 @@ ch_ret spell_dispel_magic( int sn, int level, CHAR_DATA * ch, void *vo )
    return rNONE;
 }
 
-
-
 ch_ret spell_polymorph( int sn, int level, CHAR_DATA * ch, void *vo )
 {
    MORPH_DATA *morph;
@@ -3076,8 +3064,6 @@ ch_ret spell_energy_drain( int sn, int level, CHAR_DATA * ch, void *vo )
    return damage( ch, victim, dam, sn );
 }
 
-
-
 ch_ret spell_fireball( int sn, int level, CHAR_DATA * ch, void *vo )
 {
    CHAR_DATA *victim = ( CHAR_DATA * ) vo;
@@ -3112,8 +3098,6 @@ ch_ret spell_flamestrike( int sn, int level, CHAR_DATA * ch, void *vo )
    return damage( ch, victim, dam, sn );
 }
 
-
-
 ch_ret spell_faerie_fire( int sn, int level, CHAR_DATA * ch, void *vo )
 {
    CHAR_DATA *victim = ( CHAR_DATA * ) vo;
@@ -3142,8 +3126,6 @@ ch_ret spell_faerie_fire( int sn, int level, CHAR_DATA * ch, void *vo )
    return rNONE;
 }
 
-
-
 ch_ret spell_faerie_fog( int sn, int level, CHAR_DATA * ch, void *vo )
 {
    CHAR_DATA *ich;
@@ -3171,7 +3153,6 @@ ch_ret spell_faerie_fog( int sn, int level, CHAR_DATA * ch, void *vo )
    return rNONE;
 }
 
-
 ch_ret spell_gate( int sn, int level, CHAR_DATA * ch, void *vo )
 {
    MOB_INDEX_DATA *temp;
@@ -3183,7 +3164,6 @@ ch_ret spell_gate( int sn, int level, CHAR_DATA * ch, void *vo )
    char_to_room( create_mobile( temp ), ch->in_room );
    return rNONE;
 }
-
 
 ch_ret spell_harm( int sn, int level, CHAR_DATA * ch, void *vo )
 {
@@ -3506,7 +3486,6 @@ ch_ret spell_know_alignment( int sn, int level, CHAR_DATA * ch, void *vo )
    return rNONE;
 }
 
-
 ch_ret spell_lightning_bolt( int sn, int level, CHAR_DATA * ch, void *vo )
 {
    CHAR_DATA *victim = ( CHAR_DATA * ) vo;
@@ -3808,8 +3787,6 @@ ch_ret spell_shocking_grasp( int sn, int level, CHAR_DATA * ch, void *vo )
    return damage( ch, victim, dam, sn );
 }
 
-
-
 ch_ret spell_sleep( int sn, int level, CHAR_DATA * ch, void *vo )
 {
    AFFECT_DATA af;
@@ -3890,8 +3867,6 @@ ch_ret spell_sleep( int sn, int level, CHAR_DATA * ch, void *vo )
 
    return rNONE;
 }
-
-
 
 ch_ret spell_summon( int sn, int level, CHAR_DATA * ch, void *vo )
 {
@@ -4183,8 +4158,6 @@ ch_ret spell_weaken( int sn, int level, CHAR_DATA * ch, void *vo )
    return rNONE;
 }
 
-
-
 /*
  * A spell as it should be				-Thoric
  */
@@ -4193,7 +4166,6 @@ ch_ret spell_word_of_recall( int sn, int level, CHAR_DATA * ch, void *vo )
    do_recall( ( CHAR_DATA * ) vo, "" );
    return rNONE;
 }
-
 
 /*
  * NPC spells.
@@ -4254,8 +4226,6 @@ ch_ret spell_acid_breath( int sn, int level, CHAR_DATA * ch, void *vo )
       dam /= 2;
    return damage( ch, victim, dam, sn );
 }
-
-
 
 ch_ret spell_fire_breath( int sn, int level, CHAR_DATA * ch, void *vo )
 {
@@ -4321,8 +4291,6 @@ ch_ret spell_fire_breath( int sn, int level, CHAR_DATA * ch, void *vo )
       dam /= 2;
    return damage( ch, victim, dam, sn );
 }
-
-
 
 ch_ret spell_frost_breath( int sn, int level, CHAR_DATA * ch, void *vo )
 {
@@ -5037,14 +5005,32 @@ ch_ret spell_animate_dead( int sn, int level, CHAR_DATA * ch, void *vo )
 
    found = FALSE;
 
-   for( corpse = ch->in_room->first_content; corpse; corpse = corpse_next )
+   if ( target_name[0] != '\0' )
    {
-      corpse_next = corpse->next_content;
-
-      if( corpse->item_type == ITEM_CORPSE_NPC && corpse->cost != -5 )
+      if( ( corpse = get_obj_here( ch, target_name ) ) == NULL )
       {
+         send_to_char( "You cannot find that here.\r\n", ch );
+         return rSPELL_FAILED;
+      }
+      else if( corpse->item_type == ITEM_CORPSE_NPC && corpse->cost != -5 )
          found = TRUE;
-         break;
+      else
+      {
+         send_to_char( "That's not a suitable corpse.\r\n", ch );
+         return rSPELL_FAILED;
+      }
+   }
+   else
+   {
+      for( corpse = ch->in_room->first_content; corpse; corpse = corpse_next )
+      {
+         corpse_next = corpse->next_content;
+
+         if( corpse->item_type == ITEM_CORPSE_NPC && corpse->cost != -5 )
+         {
+            found = TRUE;
+            break;
+         }
       }
    }
 
@@ -6350,8 +6336,6 @@ ch_ret spell_smaug( int sn, int level, CHAR_DATA * ch, void *vo )
    return rNONE;
 }
 
-
-
 /* Haus' new, new mage spells follow */
 
 /*
@@ -6372,7 +6356,6 @@ ch_ret spell_ethereal_fist( int sn, int level, CHAR_DATA * ch, void *vo )
 
    return damage( ch, victim, dam, sn );
 }
-
 
 ch_ret spell_spectral_furor( int sn, int level, CHAR_DATA * ch, void *vo )
 {
@@ -6400,7 +6383,6 @@ ch_ret spell_hand_of_chaos( int sn, int level, CHAR_DATA * ch, void *vo )
       dam /= 4;
    return damage( ch, victim, dam, sn );
 }
-
 
 ch_ret spell_disruption( int sn, int level, CHAR_DATA * ch, void *vo )
 {
@@ -6464,7 +6446,6 @@ ch_ret spell_mind_wrench( int sn, int level, CHAR_DATA * ch, void *vo )
       dam /= 2;
    return damage( ch, victim, dam, sn );
 }
-
 
 /* Non-offensive spell! */
 ch_ret spell_revive( int sn, int level, CHAR_DATA * ch, void *vo )
@@ -6530,7 +6511,6 @@ ch_ret spell_acetum_primus( int sn, int level, CHAR_DATA * ch, void *vo )
 /*
  *  Electrical
  */
-
 ch_ret spell_galvanic_whip( int sn, int level, CHAR_DATA * ch, void *vo )
 {
    CHAR_DATA *victim = ( CHAR_DATA * ) vo;

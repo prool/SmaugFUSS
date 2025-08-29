@@ -630,8 +630,14 @@ int get_exp_worth( CHAR_DATA * ch )
       wexp += ( int )( wexp * 1.5 );
    if( IS_AFFECTED( ch, AFF_FIRESHIELD ) )
       wexp += ( int )( wexp * 1.2 );
+   if( IS_AFFECTED( ch, AFF_ICESHIELD ) )
+      wexp += ( int )( wexp * 1.2 ); 
    if( IS_AFFECTED( ch, AFF_SHOCKSHIELD ) )
       wexp += ( int )( wexp * 1.2 );
+   if( IS_AFFECTED( ch, AFF_VENOMSHIELD ) )
+      wexp += ( int )( wexp * 1.2 );
+   if( IS_AFFECTED( ch, AFF_ACIDMIST ) )
+      wexp += ( int )( wexp * 1.2 ); 
    wexp = URANGE( MIN_EXP_WORTH, wexp, MAX_EXP_WORTH );
 
    return wexp;
@@ -1434,6 +1440,7 @@ void affect_modify( CHAR_DATA * ch, AFFECT_DATA * paf, bool fAdd )
    ToDropW = WWeight = WPos ? get_obj_weight( WPos ) : 0;
    DWeight = MWeight = 0;
    DPos = get_eq_char( ch, WEAR_DUAL_WIELD );
+
    if( DPos && ( DWeight = get_obj_weight( DPos ) ) > ToDropW )
    {
       ToDrop = DPos;
@@ -1464,7 +1471,6 @@ void affect_modify( CHAR_DATA * ch, AFFECT_DATA * paf, bool fAdd )
          depth--;
       }
    }
-   return;
 }
 
 /*
@@ -1502,7 +1508,6 @@ void affect_to_char( CHAR_DATA * ch, AFFECT_DATA * paf )
     */
    if( ch->in_room )
       room_affect( ch->in_room, paf_new, TRUE );
-   return;
 }
 
 /*
@@ -1527,7 +1532,6 @@ void affect_remove( CHAR_DATA * ch, AFFECT_DATA * paf )
 
    UNLINK( paf, ch->first_affect, ch->last_affect, next, prev );
    DISPOSE( paf );
-   return;
 }
 
 /*
@@ -1544,8 +1548,6 @@ void affect_strip( CHAR_DATA * ch, int sn )
       if( paf->type == sn )
          affect_remove( ch, paf );
    }
-
-   return;
 }
 
 /*
@@ -1585,7 +1587,6 @@ void affect_join( CHAR_DATA * ch, AFFECT_DATA * paf )
       }
    }
    affect_to_char( ch, paf );
-   return;
 }
 
 /*
@@ -1736,8 +1737,6 @@ void update_aris( CHAR_DATA * ch )
     */
    if( hiding )
       xSET_BIT( ch->affected_by, AFF_HIDE );
-
-   return;
 }
 
 /*
@@ -1794,8 +1793,6 @@ void char_from_room( CHAR_DATA * ch )
 
    if( !IS_NPC( ch ) && get_timer( ch, TIMER_SHOVEDRAG ) > 0 )
       remove_timer( ch, TIMER_SHOVEDRAG );
-
-   return;
 }
 
 /*
@@ -1887,7 +1884,6 @@ void char_to_room( CHAR_DATA * ch, ROOM_INDEX_DATA * pRoomIndex )
    }
    if( !ch->was_in_room )
       ch->was_in_room = ch->in_room;
-   return;
 }
 
 void free_teleports( void )
@@ -2041,7 +2037,6 @@ void obj_from_char( OBJ_DATA * obj )
    obj->carried_by = NULL;
    ch->carry_number -= get_obj_number( obj );
    ch->carry_weight -= get_obj_weight( obj );
-   return;
 }
 
 /*
@@ -2100,8 +2095,6 @@ int apply_ac( OBJ_DATA * obj, int iWear )
 
    return 0;
 }
-
-
 
 /*
  * Find a piece of eq on a character.
@@ -2180,8 +2173,6 @@ void equip_char( CHAR_DATA * ch, OBJ_DATA * obj, int iWear )
    if( loading_char != ch
        && obj->item_type == ITEM_LIGHT && ( obj->value[2] != 0 || IS_SET( obj->value[3], PIPE_LIT ) ) && ch->in_room )
       ++ch->in_room->light;
-
-   return;
 }
 
 /*
@@ -2228,14 +2219,12 @@ void unequip_char( CHAR_DATA * ch, OBJ_DATA * obj )
    if( obj->item_type == ITEM_LIGHT
        && ( obj->value[2] != 0 || IS_SET( obj->value[3], PIPE_LIT ) ) && ch->in_room && ch->in_room->light > 0 )
       --ch->in_room->light;
-
-   return;
 }
 
 /*
  * Move an obj out of a room.
  */
-void write_corpses args( ( CHAR_DATA * ch, const char *name, OBJ_DATA * objrem ) );
+void write_corpses( CHAR_DATA * ch, const char *name, OBJ_DATA * objrem );
 
 int falling;
 
@@ -2271,9 +2260,9 @@ void obj_from_room( OBJ_DATA * obj )
    obj->carried_by = NULL;
    obj->in_obj = NULL;
    obj->in_room = NULL;
+
    if( obj->pIndexData->vnum == OBJ_VNUM_CORPSE_PC && falling < 1 )
       write_corpses( NULL, obj->short_descr + 14, obj );
-   return;
 }
 
 /*
@@ -2395,8 +2384,6 @@ void obj_from_obj( OBJ_DATA * obj )
       for( ; obj_from; obj_from = obj_from->in_obj )
          if( obj_from->carried_by )
             obj_from->carried_by->carry_weight -= get_obj_weight( obj );
-
-   return;
 }
 
 /*
@@ -2505,7 +2492,6 @@ void extract_obj( OBJ_DATA * obj )
       if( global_objcode == rNONE )
          global_objcode = rOBJ_EXTRACTED;
    }
-   return;
 }
 
 /*
@@ -2690,7 +2676,6 @@ void extract_char( CHAR_DATA * ch, bool fPull )
          ch->desc = NULL;
       }
    }
-   return;
 }
 
 /*
@@ -2744,9 +2729,6 @@ CHAR_DATA *get_char_room( CHAR_DATA * ch, const char *argument )
    return NULL;
 }
 
-
-
-
 /*
  * Find a char in the world.
  */
@@ -2782,8 +2764,6 @@ CHAR_DATA *get_char_world( CHAR_DATA * ch, const char *argument )
       }
 
    count = 0;
-
-
 
    /*
     * check the world for an exact match 
@@ -2903,7 +2883,6 @@ OBJ_DATA *get_obj_list_rev( CHAR_DATA * ch, const char *argument, OBJ_DATA * lis
 /*
  * Find an obj in player's inventory or wearing via a vnum -Shaddai
  */
-
 OBJ_DATA *get_obj_vnum( CHAR_DATA * ch, int vnum )
 {
    OBJ_DATA *obj;
@@ -2954,8 +2933,6 @@ OBJ_DATA *get_obj_carry( CHAR_DATA * ch, const char *argument )
    return NULL;
 }
 
-
-
 /*
  * Find an obj in player's equipment.
  */
@@ -2996,8 +2973,6 @@ OBJ_DATA *get_obj_wear( CHAR_DATA * ch, const char *argument )
    return NULL;
 }
 
-
-
 /*
  * Find an obj in the room or in inventory.
  */
@@ -3017,8 +2992,6 @@ OBJ_DATA *get_obj_here( CHAR_DATA * ch, const char *argument )
 
    return NULL;
 }
-
-
 
 /*
  * Find an obj in the world.
@@ -3067,7 +3040,6 @@ OBJ_DATA *get_obj_world( CHAR_DATA * ch, const char *argument )
 
    return NULL;
 }
-
 
 /*
  * How mental state could affect finding an object		-Thoric
@@ -3183,7 +3155,6 @@ bool ms_find_obj( CHAR_DATA * ch )
    send_to_char( t, ch );
    return TRUE;
 }
-
 
 /*
  * Generic get obj function that supports optional containers.	-Thoric
@@ -3701,73 +3672,73 @@ const char *affect_bit_name( EXT_BV * vector )
 
    buf[0] = '\0';
    if( xIS_SET( *vector, AFF_BLIND ) )
-      mudstrlcat( buf, " blind", 512 );
+      strlcat( buf, " blind", 512 );
    if( xIS_SET( *vector, AFF_INVISIBLE ) )
-      mudstrlcat( buf, " invisible", 512 );
+      strlcat( buf, " invisible", 512 );
    if( xIS_SET( *vector, AFF_DETECT_EVIL ) )
-      mudstrlcat( buf, " detect_evil", 512 );
+      strlcat( buf, " detect_evil", 512 );
    if( xIS_SET( *vector, AFF_DETECT_INVIS ) )
-      mudstrlcat( buf, " detect_invis", 512 );
+      strlcat( buf, " detect_invis", 512 );
    if( xIS_SET( *vector, AFF_DETECT_MAGIC ) )
-      mudstrlcat( buf, " detect_magic", 512 );
+      strlcat( buf, " detect_magic", 512 );
    if( xIS_SET( *vector, AFF_DETECT_HIDDEN ) )
-      mudstrlcat( buf, " detect_hidden", 512 );
+      strlcat( buf, " detect_hidden", 512 );
    if( xIS_SET( *vector, AFF_HOLD ) )
-      mudstrlcat( buf, " hold", 512 );
+      strlcat( buf, " hold", 512 );
    if( xIS_SET( *vector, AFF_SANCTUARY ) )
-      mudstrlcat( buf, " sanctuary", 512 );
+      strlcat( buf, " sanctuary", 512 );
    if( xIS_SET( *vector, AFF_FAERIE_FIRE ) )
-      mudstrlcat( buf, " faerie_fire", 512 );
+      strlcat( buf, " faerie_fire", 512 );
    if( xIS_SET( *vector, AFF_INFRARED ) )
-      mudstrlcat( buf, " infrared", 512 );
+      strlcat( buf, " infrared", 512 );
    if( xIS_SET( *vector, AFF_CURSE ) )
-      mudstrlcat( buf, " curse", 512 );
+      strlcat( buf, " curse", 512 );
    if( xIS_SET( *vector, AFF_FLAMING ) )
-      mudstrlcat( buf, " flaming", 512 );
+      strlcat( buf, " flaming", 512 );
    if( xIS_SET( *vector, AFF_POISON ) )
-      mudstrlcat( buf, " poison", 512 );
+      strlcat( buf, " poison", 512 );
    if( xIS_SET( *vector, AFF_PROTECT ) )
-      mudstrlcat( buf, " protect", 512 );
+      strlcat( buf, " protect", 512 );
    if( xIS_SET( *vector, AFF_PARALYSIS ) )
-      mudstrlcat( buf, " paralysis", 512 );
+      strlcat( buf, " paralysis", 512 );
    if( xIS_SET( *vector, AFF_SLEEP ) )
-      mudstrlcat( buf, " sleep", 512 );
+      strlcat( buf, " sleep", 512 );
    if( xIS_SET( *vector, AFF_SNEAK ) )
-      mudstrlcat( buf, " sneak", 512 );
+      strlcat( buf, " sneak", 512 );
    if( xIS_SET( *vector, AFF_HIDE ) )
-      mudstrlcat( buf, " hide", 512 );
+      strlcat( buf, " hide", 512 );
    if( xIS_SET( *vector, AFF_CHARM ) )
-      mudstrlcat( buf, " charm", 512 );
+      strlcat( buf, " charm", 512 );
    if( xIS_SET( *vector, AFF_POSSESS ) )
-      mudstrlcat( buf, " possess", 512 );
+      strlcat( buf, " possess", 512 );
    if( xIS_SET( *vector, AFF_FLYING ) )
-      mudstrlcat( buf, " flying", 512 );
+      strlcat( buf, " flying", 512 );
    if( xIS_SET( *vector, AFF_PASS_DOOR ) )
-      mudstrlcat( buf, " pass_door", 512 );
+      strlcat( buf, " pass_door", 512 );
    if( xIS_SET( *vector, AFF_FLOATING ) )
-      mudstrlcat( buf, " floating", 512 );
+      strlcat( buf, " floating", 512 );
    if( xIS_SET( *vector, AFF_TRUESIGHT ) )
-      mudstrlcat( buf, " true_sight", 512 );
+      strlcat( buf, " true_sight", 512 );
    if( xIS_SET( *vector, AFF_DETECTTRAPS ) )
-      mudstrlcat( buf, " detect_traps", 512 );
+      strlcat( buf, " detect_traps", 512 );
    if( xIS_SET( *vector, AFF_SCRYING ) )
-      mudstrlcat( buf, " scrying", 512 );
+      strlcat( buf, " scrying", 512 );
    if( xIS_SET( *vector, AFF_FIRESHIELD ) )
-      mudstrlcat( buf, " fireshield", 512 );
+      strlcat( buf, " fireshield", 512 );
    if( xIS_SET( *vector, AFF_ACIDMIST ) )
-      mudstrlcat( buf, " acidmist", 512 );
+      strlcat( buf, " acidmist", 512 );
    if( xIS_SET( *vector, AFF_VENOMSHIELD ) )
-      mudstrlcat( buf, " venomshield", 512 );
+      strlcat( buf, " venomshield", 512 );
    if( xIS_SET( *vector, AFF_SHOCKSHIELD ) )
-      mudstrlcat( buf, " shockshield", 512 );
+      strlcat( buf, " shockshield", 512 );
    if( xIS_SET( *vector, AFF_ICESHIELD ) )
-      mudstrlcat( buf, " iceshield", 512 );
+      strlcat( buf, " iceshield", 512 );
    if( xIS_SET( *vector, AFF_BERSERK ) )
-      mudstrlcat( buf, " berserk", 512 );
+      strlcat( buf, " berserk", 512 );
    if( xIS_SET( *vector, AFF_AQUA_BREATH ) )
-      mudstrlcat( buf, " aqua_breath", 512 );
+      strlcat( buf, " aqua_breath", 512 );
    if( xIS_SET( *vector, AFF_GRAPPLE ) )
-      mudstrlcat( buf, " grapple", 512 );
+      strlcat( buf, " grapple", 512 );
    return ( buf[0] != '\0' ) ? buf + 1 : ( char * )"none";
 }
 
@@ -3780,65 +3751,65 @@ const char *extra_bit_name( EXT_BV * extra_flags )
 
    buf[0] = '\0';
    if( xIS_SET( *extra_flags, ITEM_GLOW ) )
-      mudstrlcat( buf, " glow", 512 );
+      strlcat( buf, " glow", 512 );
    if( xIS_SET( *extra_flags, ITEM_HUM ) )
-      mudstrlcat( buf, " hum", 512 );
+      strlcat( buf, " hum", 512 );
    if( xIS_SET( *extra_flags, ITEM_DARK ) )
-      mudstrlcat( buf, " dark", 512 );
+      strlcat( buf, " dark", 512 );
    if( xIS_SET( *extra_flags, ITEM_LOYAL ) )
-      mudstrlcat( buf, " loyal", 512 );
+      strlcat( buf, " loyal", 512 );
    if( xIS_SET( *extra_flags, ITEM_EVIL ) )
-      mudstrlcat( buf, " evil", 512 );
+      strlcat( buf, " evil", 512 );
    if( xIS_SET( *extra_flags, ITEM_INVIS ) )
-      mudstrlcat( buf, " invis", 512 );
+      strlcat( buf, " invis", 512 );
    if( xIS_SET( *extra_flags, ITEM_MAGIC ) )
-      mudstrlcat( buf, " magic", 512 );
+      strlcat( buf, " magic", 512 );
    if( xIS_SET( *extra_flags, ITEM_NODROP ) )
-      mudstrlcat( buf, " nodrop", 512 );
+      strlcat( buf, " nodrop", 512 );
    if( xIS_SET( *extra_flags, ITEM_BLESS ) )
-      mudstrlcat( buf, " bless", 512 );
+      strlcat( buf, " bless", 512 );
    if( xIS_SET( *extra_flags, ITEM_ANTI_GOOD ) )
-      mudstrlcat( buf, " anti-good", 512 );
+      strlcat( buf, " anti-good", 512 );
    if( xIS_SET( *extra_flags, ITEM_ANTI_EVIL ) )
-      mudstrlcat( buf, " anti-evil", 512 );
+      strlcat( buf, " anti-evil", 512 );
    if( xIS_SET( *extra_flags, ITEM_ANTI_NEUTRAL ) )
-      mudstrlcat( buf, " anti-neutral", 512 );
+      strlcat( buf, " anti-neutral", 512 );
    if( xIS_SET( *extra_flags, ITEM_NOREMOVE ) )
-      mudstrlcat( buf, " noremove", 512 );
+      strlcat( buf, " noremove", 512 );
    if( xIS_SET( *extra_flags, ITEM_INVENTORY ) )
-      mudstrlcat( buf, " inventory", 512 );
+      strlcat( buf, " inventory", 512 );
    if( xIS_SET( *extra_flags, ITEM_DEATHROT ) )
-      mudstrlcat( buf, " deathrot", 512 );
+      strlcat( buf, " deathrot", 512 );
    if( xIS_SET( *extra_flags, ITEM_GROUNDROT ) )
-      mudstrlcat( buf, " groundrot", 512 );
+      strlcat( buf, " groundrot", 512 );
    if( xIS_SET( *extra_flags, ITEM_ANTI_MAGE ) )
-      mudstrlcat( buf, " anti-mage", 512 );
+      strlcat( buf, " anti-mage", 512 );
    if( xIS_SET( *extra_flags, ITEM_ANTI_THIEF ) )
-      mudstrlcat( buf, " anti-thief", 512 );
+      strlcat( buf, " anti-thief", 512 );
    if( xIS_SET( *extra_flags, ITEM_ANTI_WARRIOR ) )
-      mudstrlcat( buf, " anti-warrior", 512 );
+      strlcat( buf, " anti-warrior", 512 );
    if( xIS_SET( *extra_flags, ITEM_ANTI_CLERIC ) )
-      mudstrlcat( buf, " anti-cleric", 512 );
+      strlcat( buf, " anti-cleric", 512 );
    if( xIS_SET( *extra_flags, ITEM_ANTI_DRUID ) )
-      mudstrlcat( buf, " anti-druid", 512 );
+      strlcat( buf, " anti-druid", 512 );
    if( xIS_SET( *extra_flags, ITEM_ANTI_VAMPIRE ) )
-      mudstrlcat( buf, " anti-vampire", 512 );
+      strlcat( buf, " anti-vampire", 512 );
    if( xIS_SET( *extra_flags, ITEM_ORGANIC ) )
-      mudstrlcat( buf, " organic", 512 );
+      strlcat( buf, " organic", 512 );
    if( xIS_SET( *extra_flags, ITEM_METAL ) )
-      mudstrlcat( buf, " metal", 512 );
+      strlcat( buf, " metal", 512 );
    if( xIS_SET( *extra_flags, ITEM_DONATION ) )
-      mudstrlcat( buf, " donation", 512 );
+      strlcat( buf, " donation", 512 );
    if( xIS_SET( *extra_flags, ITEM_CLANOBJECT ) )
-      mudstrlcat( buf, " clan", 512 );
+      strlcat( buf, " clan", 512 );
    if( xIS_SET( *extra_flags, ITEM_CLANCORPSE ) )
-      mudstrlcat( buf, " clanbody", 512 );
+      strlcat( buf, " clanbody", 512 );
    if( xIS_SET( *extra_flags, ITEM_PERMANENT ) )
-      mudstrlcat( buf, " permanent", 512 );
+      strlcat( buf, " permanent", 512 );
    if( xIS_SET( *extra_flags, ITEM_PERSONAL ) )
-      mudstrlcat( buf, " personal", 512 );
+      strlcat( buf, " personal", 512 );
    if( xIS_SET( *extra_flags, ITEM_PROTOTYPE ) )
-      mudstrlcat( buf, " prototype", 512 );
+      strlcat( buf, " prototype", 512 );
    return ( buf[0] != '\0' ) ? buf + 1 : ( char * )"none";
 }
 
@@ -3851,7 +3822,7 @@ const char *magic_bit_name( int magic_flags )
 
    buf[0] = '\0';
    if( magic_flags & ITEM_RETURNING )
-      mudstrlcat( buf, " returning", 512 );
+      strlcat( buf, " returning", 512 );
    return ( buf[0] != '\0' ) ? buf + 1 : ( char * )"none";
 }
 
@@ -4472,10 +4443,10 @@ void showaffect( CHAR_DATA * ch, AFFECT_DATA * paf )
             for( x = 0; x < 32; x++ )
                if( IS_SET( paf->modifier, 1 << x ) )
                {
-                  mudstrlcat( buf, " ", MAX_STRING_LENGTH );
-                  mudstrlcat( buf, a_flags[x], MAX_STRING_LENGTH );
+                  strlcat( buf, " ", MAX_STRING_LENGTH );
+                  strlcat( buf, a_flags[x], MAX_STRING_LENGTH );
                }
-            mudstrlcat( buf, "\r\n", MAX_STRING_LENGTH );
+            strlcat( buf, "\r\n", MAX_STRING_LENGTH );
             break;
          case APPLY_WEAPONSPELL:
          case APPLY_WEARSPELL:
@@ -4490,10 +4461,10 @@ void showaffect( CHAR_DATA * ch, AFFECT_DATA * paf )
             for( x = 0; x < 32; x++ )
                if( IS_SET( paf->modifier, 1 << x ) )
                {
-                  mudstrlcat( buf, " ", MAX_STRING_LENGTH );
-                  mudstrlcat( buf, ris_flags[x], MAX_STRING_LENGTH );
+                  strlcat( buf, " ", MAX_STRING_LENGTH );
+                  strlcat( buf, ris_flags[x], MAX_STRING_LENGTH );
                }
-            mudstrlcat( buf, "\r\n", MAX_STRING_LENGTH );
+            strlcat( buf, "\r\n", MAX_STRING_LENGTH );
             break;
       }
       send_to_char( buf, ch );
@@ -4593,7 +4564,6 @@ void free_obj( OBJ_DATA * obj )
    STRFREE( obj->action_desc );
    STRFREE( obj->owner );
    DISPOSE( obj );
-   return;
 }
 
 /*
@@ -4738,7 +4708,6 @@ void extract_timer( CHAR_DATA * ch, TIMER * timer )
 
    UNLINK( timer, ch->first_timer, ch->last_timer, next, prev );
    DISPOSE( timer );
-   return;
 }
 
 void remove_timer( CHAR_DATA * ch, short type )

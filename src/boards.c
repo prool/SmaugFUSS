@@ -67,7 +67,6 @@ void free_projects( void )
       project_next = project->next;
       delete_project( project );
    }
-   return;
 }
 
 bool can_remove( CHAR_DATA * ch, BOARD_DATA * board )
@@ -144,6 +143,7 @@ void free_board( BOARD_DATA * board )
    DISPOSE( board->post_group );
    DISPOSE( board->extra_readers );
    DISPOSE( board->extra_removers );
+   DISPOSE( board->extra_ballots );
    DISPOSE( board->note_file );
    DISPOSE( board->otakemessg );
    DISPOSE( board->ocopymessg );
@@ -172,7 +172,6 @@ void free_boards( void )
       board_next = board->next;
       free_board( board );
    }
-   return;
 }
 
 /*
@@ -283,7 +282,6 @@ void note_attach( CHAR_DATA * ch )
    pnote->subject = STRALLOC( "" );
    pnote->text = STRALLOC( "" );
    ch->pnote = pnote;
-   return;
 }
 
 void write_board( BOARD_DATA * board )
@@ -311,7 +309,6 @@ void write_board( BOARD_DATA * board )
       }
       FCLOSE( fp );
    }
-   return;
 }
 
 void free_note( NOTE_DATA * pnote )
@@ -365,13 +362,13 @@ OBJ_DATA *find_quill( CHAR_DATA * ch )
    return NULL;
 }
 
-void do_noteroom( CHAR_DATA* ch, const char* argument)
+void do_noteroom( CHAR_DATA* ch, const char* argument )
 {
    BOARD_DATA *board;
    char arg[MAX_STRING_LENGTH];
    char arg_passed[MAX_STRING_LENGTH];
 
-   mudstrlcpy( arg_passed, argument, MAX_STRING_LENGTH );
+   strlcpy( arg_passed, argument, MAX_STRING_LENGTH );
 
    switch ( ch->substate )
    {
@@ -409,13 +406,13 @@ void do_noteroom( CHAR_DATA* ch, const char* argument)
    }
 }
 
-void do_mailroom( CHAR_DATA* ch, const char* argument)
+void do_mailroom( CHAR_DATA* ch, const char* argument )
 {
    BOARD_DATA *board;
    char arg[MAX_STRING_LENGTH];
    char arg_passed[MAX_STRING_LENGTH];
 
-   mudstrlcpy( arg_passed, argument, MAX_STRING_LENGTH );
+   strlcpy( arg_passed, argument, MAX_STRING_LENGTH );
 
    switch ( ch->substate )
    {
@@ -953,7 +950,7 @@ void do_note( CHAR_DATA * ch, const char *arg_passed, bool IS_MAIL )
       {
          snprintf( buf, MAX_STRING_LENGTH, "%s %s", pnote->yesvotes, ch->name );
          DISPOSE( pnote->yesvotes );
-         pnote->yesvotes = str_dup( buf );
+         pnote->yesvotes = strdup( buf );
          pnote->yestally = ( ( pnote->yestally ) ? pnote->yestally + 1 : 1 );
          act( AT_ACTION, "$n votes on a note.", ch, NULL, NULL, TO_CANSEE );
          ch_printf( ch, "You vote yes on %s.\r\n", pnote->subject );
@@ -965,7 +962,7 @@ void do_note( CHAR_DATA * ch, const char *arg_passed, bool IS_MAIL )
       {
          snprintf( buf, MAX_STRING_LENGTH, "%s %s", pnote->novotes, ch->name );
          DISPOSE( pnote->novotes );
-         pnote->novotes = str_dup( buf );
+         pnote->novotes = strdup( buf );
          pnote->notally = ( ( pnote->notally ) ? pnote->notally + 1 : 1 );
          act( AT_ACTION, "$n votes on a note.", ch, NULL, NULL, TO_CANSEE );
          ch_printf( ch, "You vote no on %s.\r\n", pnote->subject );
@@ -977,7 +974,7 @@ void do_note( CHAR_DATA * ch, const char *arg_passed, bool IS_MAIL )
       {
          snprintf( buf, MAX_STRING_LENGTH, "%s %s", pnote->abstentions, ch->name );
          DISPOSE( pnote->abstentions );
-         pnote->abstentions = str_dup( buf );
+         pnote->abstentions = strdup( buf );
          pnote->abstaintally = ( ( pnote->abstaintally ) ? pnote->abstaintally + 1 : 1 );
          act( AT_ACTION, "$n votes on a note.", ch, NULL, NULL, TO_CANSEE );
          ch_printf( ch, "You abstain on %s.\r\n", pnote->subject );
@@ -1261,9 +1258,9 @@ void do_note( CHAR_DATA * ch, const char *arg_passed, bool IS_MAIL )
       pnote->subject = subj ? STRALLOC( subj ) : STRALLOC( "" );
       pnote->sender = QUICKLINK( ch->name );
       pnote->voting = 0;
-      pnote->yesvotes = str_dup( "" );
-      pnote->novotes = str_dup( "" );
-      pnote->abstentions = str_dup( "" );
+      pnote->yesvotes = strdup( "" );
+      pnote->novotes = strdup( "" );
+      pnote->abstentions = strdup( "" );
       pnote->no_remove = 0;
 
       LINK( pnote, board->first_note, board->last_note, next, prev );
@@ -1483,14 +1480,14 @@ void do_note( CHAR_DATA * ch, const char *arg_passed, bool IS_MAIL )
                ed = SetOExtra( paper, "note" );
                STRFREE( ed->description );
                snprintf( notebuf, MAX_STRING_LENGTH, "%s", "From: " );
-               mudstrlcat( notebuf, pnote->sender, MAX_STRING_LENGTH );
-               mudstrlcat( notebuf, "\r\nTo: ", MAX_STRING_LENGTH );
-               mudstrlcat( notebuf, pnote->to_list, MAX_STRING_LENGTH );
-               mudstrlcat( notebuf, "\r\nSubject: ", MAX_STRING_LENGTH );
-               mudstrlcat( notebuf, pnote->subject, MAX_STRING_LENGTH );
-               mudstrlcat( notebuf, "\r\n\r\n", MAX_STRING_LENGTH );
-               mudstrlcat( notebuf, pnote->text, MAX_STRING_LENGTH );
-               mudstrlcat( notebuf, "\r\n", MAX_STRING_LENGTH );
+               strlcat( notebuf, pnote->sender, MAX_STRING_LENGTH );
+               strlcat( notebuf, "\r\nTo: ", MAX_STRING_LENGTH );
+               strlcat( notebuf, pnote->to_list, MAX_STRING_LENGTH );
+               strlcat( notebuf, "\r\nSubject: ", MAX_STRING_LENGTH );
+               strlcat( notebuf, pnote->subject, MAX_STRING_LENGTH );
+               strlcat( notebuf, "\r\n\r\n", MAX_STRING_LENGTH );
+               strlcat( notebuf, pnote->text, MAX_STRING_LENGTH );
+               strlcat( notebuf, "\r\n", MAX_STRING_LENGTH );
                ed->description = STRALLOC( notebuf );
                paper->value[0] = 2;
                paper->value[1] = 2;
@@ -1541,7 +1538,6 @@ void do_note( CHAR_DATA * ch, const char *arg_passed, bool IS_MAIL )
    }
 
    send_to_char( "Huh?  Type 'help note' for usage.\r\n", ch );
-   return;
 }
 
 BOARD_DATA *read_board( FILE * fp )
@@ -1602,15 +1598,15 @@ BOARD_DATA *read_board( FILE * fp )
                board->next = NULL;
                board->prev = NULL;
                if( !board->read_group )
-                  board->read_group = str_dup( "" );
+                  board->read_group = strdup( "" );
                if( !board->post_group )
-                  board->post_group = str_dup( "" );
+                  board->post_group = strdup( "" );
                if( !board->extra_readers )
-                  board->extra_readers = str_dup( "" );
+                  board->extra_readers = strdup( "" );
                if( !board->extra_removers )
-                  board->extra_removers = str_dup( "" );
+                  board->extra_removers = strdup( "" );
                if( !board->extra_ballots )
-                  board->extra_ballots = str_dup( "" );
+                  board->extra_ballots = strdup( "" );
                return board;
             }
             break;
@@ -1746,11 +1742,11 @@ NOTE_DATA *read_note( FILE * fp )
       pnote->text = fread_string( fp );
 
       if( !pnote->yesvotes )
-         pnote->yesvotes = str_dup( "" );
+         pnote->yesvotes = strdup( "" );
       if( !pnote->novotes )
-         pnote->novotes = str_dup( "" );
+         pnote->novotes = strdup( "" );
       if( !pnote->abstentions )
-         pnote->abstentions = str_dup( "" );
+         pnote->abstentions = strdup( "" );
       pnote->next = NULL;
       pnote->prev = NULL;
       return pnote;
@@ -1792,10 +1788,9 @@ void load_boards( void )
          }
       }
    }
-   return;
 }
 
-void do_makeboard( CHAR_DATA* ch, const char* argument)
+void do_makeboard( CHAR_DATA* ch, const char* argument )
 {
    BOARD_DATA *board;
 
@@ -1810,16 +1805,16 @@ void do_makeboard( CHAR_DATA* ch, const char* argument)
    CREATE( board, BOARD_DATA, 1 );
 
    LINK( board, first_board, last_board, next, prev );
-   board->note_file = str_dup( strlower( argument ) );
-   board->read_group = str_dup( "" );
-   board->post_group = str_dup( "" );
-   board->extra_readers = str_dup( "" );
-   board->extra_removers = str_dup( "" );
-   board->extra_ballots = str_dup( "" );
+   board->note_file = strdup( strlower( argument ) );
+   board->read_group = strdup( "" );
+   board->post_group = strdup( "" );
+   board->extra_readers = strdup( "" );
+   board->extra_removers = strdup( "" );
+   board->extra_ballots = strdup( "" );
    board->min_ballot_level = LEVEL_IMMORTAL;
 }
 
-void do_bset( CHAR_DATA* ch, const char* argument)
+void do_bset( CHAR_DATA* ch, const char* argument )
 {
    BOARD_DATA *board;
    bool found;
@@ -1892,9 +1887,9 @@ void do_bset( CHAR_DATA* ch, const char* argument)
       }
       DISPOSE( board->read_group );
       if( !str_cmp( argument, "none" ) )
-         board->read_group = str_dup( "" );
+         board->read_group = strdup( "" );
       else
-         board->read_group = str_dup( argument );
+         board->read_group = strdup( argument );
       write_boards_txt(  );
       send_to_char( "Done.  (reading group set)\r\n", ch );
       return;
@@ -1909,13 +1904,14 @@ void do_bset( CHAR_DATA* ch, const char* argument)
       }
       DISPOSE( board->post_group );
       if( !str_cmp( argument, "none" ) )
-         board->post_group = str_dup( "" );
+         board->post_group = strdup( "" );
       else
-         board->post_group = str_dup( argument );
+         board->post_group = strdup( argument );
       write_boards_txt(  );
       send_to_char( "Done.  (posting group set)\r\n", ch );
       return;
    }
+
    if( !str_cmp( arg2, "postmessg" ) )
    {
       if( !argument || argument[0] == '\0' )
@@ -1930,12 +1926,13 @@ void do_bset( CHAR_DATA* ch, const char* argument)
       else
       {
          snprintf( buf, MAX_STRING_LENGTH, "%s", argument );
-         board->postmessg = str_dup( buf );
+         board->postmessg = strdup( buf );
       }
       write_boards_txt(  );
       send_to_char( "Done.\r\n", ch );
       return;
    }
+
    if( !str_cmp( arg2, "opost" ) )
    {
       if( !argument || argument[0] == '\0' )
@@ -1950,12 +1947,13 @@ void do_bset( CHAR_DATA* ch, const char* argument)
       else
       {
          snprintf( buf, MAX_STRING_LENGTH, "%s", argument );
-         board->opostmessg = str_dup( buf );
+         board->opostmessg = strdup( buf );
       }
       write_boards_txt(  );
       send_to_char( "Done.\r\n", ch );
       return;
    }
+
    if( !str_cmp( arg2, "oremove" ) )
    {
       if( !argument || argument[0] == '\0' )
@@ -1970,12 +1968,13 @@ void do_bset( CHAR_DATA* ch, const char* argument)
       else
       {
          snprintf( buf, MAX_STRING_LENGTH, "%s", argument );
-         board->oremovemessg = str_dup( buf );
+         board->oremovemessg = strdup( buf );
       }
       write_boards_txt(  );
       send_to_char( "Done.\r\n", ch );
       return;
    }
+
    if( !str_cmp( arg2, "otake" ) )
    {
       if( !argument || argument[0] == '\0' )
@@ -1990,12 +1989,13 @@ void do_bset( CHAR_DATA* ch, const char* argument)
       else
       {
          snprintf( buf, MAX_STRING_LENGTH, "%s", argument );
-         board->otakemessg = str_dup( buf );
+         board->otakemessg = strdup( buf );
       }
       write_boards_txt(  );
       send_to_char( "Done.\r\n", ch );
       return;
    }
+
    if( !str_cmp( arg2, "ocopy" ) )
    {
       if( !argument || argument[0] == '\0' )
@@ -2010,12 +2010,13 @@ void do_bset( CHAR_DATA* ch, const char* argument)
       else
       {
          snprintf( buf, MAX_STRING_LENGTH, "%s", argument );
-         board->ocopymessg = str_dup( buf );
+         board->ocopymessg = strdup( buf );
       }
       write_boards_txt(  );
       send_to_char( "Done.\r\n", ch );
       return;
    }
+
    if( !str_cmp( arg2, "oread" ) )
    {
       if( !argument || argument[0] == '\0' )
@@ -2030,12 +2031,13 @@ void do_bset( CHAR_DATA* ch, const char* argument)
       else
       {
          snprintf( buf, MAX_STRING_LENGTH, "%s", argument );
-         board->oreadmessg = str_dup( buf );
+         board->oreadmessg = strdup( buf );
       }
       write_boards_txt(  );
       send_to_char( "Done.\r\n", ch );
       return;
    }
+
    if( !str_cmp( arg2, "olist" ) )
    {
       if( !argument || argument[0] == '\0' )
@@ -2050,12 +2052,13 @@ void do_bset( CHAR_DATA* ch, const char* argument)
       else
       {
          snprintf( buf, MAX_STRING_LENGTH, "%s", argument );
-         board->olistmessg = str_dup( buf );
+         board->olistmessg = strdup( buf );
       }
       write_boards_txt(  );
       send_to_char( "Done.\r\n", ch );
       return;
    }
+
    if( !str_cmp( arg2, "extra_removers" ) )
    {
       if( !argument || argument[0] == '\0' )
@@ -2068,7 +2071,7 @@ void do_bset( CHAR_DATA* ch, const char* argument)
       else
          snprintf( buf, MAX_STRING_LENGTH, "%s %s", board->extra_removers, argument );
       DISPOSE( board->extra_removers );
-      board->extra_removers = str_dup( buf );
+      board->extra_removers = strdup( buf );
       write_boards_txt(  );
       send_to_char( "Done.  (extra removers set)\r\n", ch );
       return;
@@ -2086,7 +2089,7 @@ void do_bset( CHAR_DATA* ch, const char* argument)
       else
          snprintf( buf, MAX_STRING_LENGTH, "%s %s", board->extra_readers, argument );
       DISPOSE( board->extra_readers );
-      board->extra_readers = str_dup( buf );
+      board->extra_readers = strdup( buf );
       write_boards_txt(  );
       send_to_char( "Done.  (extra readers set)\r\n", ch );
       return;
@@ -2100,7 +2103,7 @@ void do_bset( CHAR_DATA* ch, const char* argument)
          return;
       }
       DISPOSE( board->note_file );
-      board->note_file = str_dup( argument );
+      board->note_file = strdup( argument );
       write_boards_txt(  );
       send_to_char( "Done.  (board's filename set)\r\n", ch );
       return;
@@ -2157,7 +2160,7 @@ void do_bset( CHAR_DATA* ch, const char* argument)
       else
          snprintf( buf, MAX_STRING_LENGTH, "%s %s", board->extra_ballots, argument );
       DISPOSE( board->extra_ballots );
-      board->extra_ballots = str_dup( buf );
+      board->extra_ballots = strdup( buf );
       write_boards_txt(  );
       send_to_char( "Done.  (extra ballot readers set)\r\n", ch );
       return;
@@ -2190,10 +2193,9 @@ void do_bset( CHAR_DATA* ch, const char* argument)
    }
 
    do_bset( ch, "" );
-   return;
 }
 
-void do_bstat( CHAR_DATA* ch, const char* argument)
+void do_bstat( CHAR_DATA* ch, const char* argument )
 {
    BOARD_DATA *board;
    bool found;
@@ -2242,10 +2244,9 @@ void do_bstat( CHAR_DATA* ch, const char* argument)
    ch_printf_color( ch, "&GOTake Message:   %s\r\n", board->otakemessg ? board->otakemessg : "Default Message" );
    ch_printf_color( ch, "&GOList Message:   %s\r\n", board->olistmessg ? board->olistmessg : "Default Message" );
    ch_printf_color( ch, "&GOCopy Message:   %s\r\n", board->ocopymessg ? board->ocopymessg : "Default Message" );
-   return;
 }
 
-void do_boards( CHAR_DATA* ch, const char* argument)
+void do_boards( CHAR_DATA* ch, const char* argument )
 {
    BOARD_DATA *board;
 
@@ -2281,7 +2282,6 @@ void mail_count( CHAR_DATA * ch )
 
    if( cnt_from )
       ch_printf( ch, "You have %d mail message%swritten by you.\r\n", cnt_from, ( cnt_from > 1 ) ? "s " : " " );
-   return;
 }
 
 /*
@@ -2406,8 +2406,8 @@ void do_journal( CHAR_DATA * ch, const char *argument )
       }
 
       /* Making the edits turn out to be "page1" etc - just so people can't/don't type "look 1" */
-      mudstrlcpy( buf, "page", MAX_STRING_LENGTH );
-      mudstrlcat( buf, arg2, MAX_STRING_LENGTH );
+      strlcpy( buf, "page", MAX_STRING_LENGTH );
+      strlcat( buf, arg2, MAX_STRING_LENGTH );
 
       ed = SetOExtra( journal, buf );
       ch->substate = SUB_JOURNAL_WRITE;
@@ -2467,8 +2467,8 @@ void do_journal( CHAR_DATA * ch, const char *argument )
          anum = atoi( arg2 );
       }
 
-      mudstrlcpy( buf, "page", MAX_STRING_LENGTH );
-      mudstrlcat( buf, arg2, MAX_STRING_LENGTH );
+      strlcpy( buf, "page", MAX_STRING_LENGTH );
+      strlcat( buf, arg2, MAX_STRING_LENGTH );
 
       if( ( journal = get_eq_char( ch, WEAR_HOLD ) ) == NULL || journal->item_type != ITEM_JOURNAL )
       {
@@ -2500,5 +2500,4 @@ void do_journal( CHAR_DATA * ch, const char *argument )
    send_to_char( "\r\n", ch );
    send_to_char( "Where command is one of:\r\n", ch );
    send_to_char( "write read size\r\n", ch );
-   return;
 }

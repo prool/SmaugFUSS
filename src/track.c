@@ -16,6 +16,7 @@
  ****************************************************************************/
 
 #include <stdio.h>
+#include <string.h>
 #include "mud.h"
 
 #define BFS_ERROR	   -1
@@ -77,7 +78,6 @@ void bfs_enqueue( ROOM_INDEX_DATA * room, char dir )
       queue_head = queue_tail = curr;
 }
 
-
 void bfs_dequeue( void )
 {
    BFS_DATA *curr;
@@ -88,7 +88,6 @@ void bfs_dequeue( void )
       queue_tail = NULL;
    free( curr );
 }
-
 
 void bfs_clear_queue( void )
 {
@@ -119,7 +118,6 @@ void clean_room_queue( void )
    }
    room_queue = NULL;
 }
-
 
 int find_first_step( ROOM_INDEX_DATA * src, ROOM_INDEX_DATA * target, int maxdist )
 {
@@ -187,8 +185,7 @@ int find_first_step( ROOM_INDEX_DATA * src, ROOM_INDEX_DATA * target, int maxdis
    return BFS_NO_PATH;
 }
 
-
-void do_track( CHAR_DATA* ch, const char* argument)
+void do_track( CHAR_DATA* ch, const char* argument )
 {
    CHAR_DATA *vict;
    char arg[MAX_INPUT_LENGTH];
@@ -258,7 +255,7 @@ void found_prey( CHAR_DATA * ch, CHAR_DATA * victim )
       return;
    }
 
-   mudstrlcpy( victname, IS_NPC( victim ) ? victim->short_descr : victim->name, MAX_INPUT_LENGTH );
+   strlcpy( victname, IS_NPC( victim ) ? victim->short_descr : victim->name, MAX_INPUT_LENGTH );
 
    if( !can_see( ch, victim ) )
    {
@@ -334,10 +331,10 @@ void found_prey( CHAR_DATA * ch, CHAR_DATA * victim )
          act( AT_ACTION, "You lunge at $N catching $M off guard!", ch, NULL, victim, TO_CHAR );
          act( AT_ACTION, "$n lunges at you from out of nowhere!", ch, NULL, victim, TO_VICT );
    }
+
    stop_hunting( ch );
    set_fighting( ch, victim );
    multi_hit( ch, victim, TYPE_UNDEFINED );
-   return;
 }
 
 void hunt_victim( CHAR_DATA * ch )

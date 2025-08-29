@@ -26,6 +26,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <string>
 #include "mud.h"
 #include "mccp.h"
 #include "mssp.h"
@@ -64,10 +65,6 @@ void shutdown_checkpoint( void );
 #include <netdb.h>
 #endif
 
-#ifdef IMC
-void imc_delete_info( void );
-void free_imcdata( bool complete );
-#endif
 void dispose_ban( BAN_DATA * ban, int type );
 void close_all_areas( void );
 void free_commands( void );
@@ -174,12 +171,6 @@ void cleanup_memory( void )
    CHAR_DATA *character;
    OBJ_DATA *object;
    DESCRIPTOR_DATA *desc, *desc_next;
-
-#ifdef IMC
-   fprintf( stdout, "%s", "IMC2 Data.\n" );
-   free_imcdata( TRUE );
-   imc_delete_info(  );
-#endif
 
    fprintf( stdout, "%s", "Project Data.\n" );
    free_projects(  );
@@ -301,6 +292,8 @@ void cleanup_memory( void )
    {
       for( loopa = 0; loopa < MAX_WHERE_NAME; loopa++ )
          DISPOSE( race_table[hash]->where_name[loopa] );
+
+      STRFREE( race_table[hash]->race_name );
       DISPOSE( race_table[hash] );
    }
 
@@ -396,8 +389,39 @@ void cleanup_memory( void )
    }
 
    fprintf( stdout, "%s", "Cleanup complete, exiting.\n" );
-   return;
 }  /* cleanup memory */
+
+void open_mud_log( void )
+{
+   struct stat fst;
+   FILE *error_log;
+   char buf[256];
+   int logindex;
+
+   // Stop trying after 100K log files. If you have this many it's not good anyway.
+   for( logindex = 1000; logindex < 100000; ++logindex )
+   {
+      snprintf( buf, 256, "../log/%d.log", logindex );
+      if( stat( buf, &fst ) != -1 )
+         continue;
+      else if( logindex < 100000 )
+         break;
+      else
+      {
+         fprintf( stderr, "%s", "You have too damn many log files! Clean them up!" );
+         exit( 1 );
+      }
+   }
+
+   if( !( error_log = fopen( buf, "a" ) ) )
+   {
+      fprintf( stderr, "Unable to append to %s.", buf );
+      exit( 1 );
+   }
+
+   dup2( fileno( error_log ), STDERR_FILENO );
+   FCLOSE( error_log );
+}
 
 #ifdef WIN32
 int mainthread( int argc, char **argv )
@@ -407,10 +431,6 @@ int main( int argc, char **argv )
 {
    struct timeval now_time;
    bool fCopyOver = FALSE;
-#ifdef IMC
-   int imcsocket = -1;
-#endif
-
    DONT_UPPER = FALSE;
    num_descriptors = 0;
    first_descriptor = NULL;
@@ -424,7 +444,7 @@ int main( int argc, char **argv )
    gettimeofday( &now_time, NULL );
    current_time = ( time_t ) now_time.tv_sec;
    boot_time = time( 0 );  /*  <-- I think this is what you wanted */
-   mudstrlcpy( str_boot_time, ctime( &current_time ), MAX_INPUT_LENGTH );
+   strlcpy( str_boot_time, ctime( &current_time ), MAX_INPUT_LENGTH );
 
    /*
     * Init boot time.
@@ -482,9 +502,6 @@ int main( int argc, char **argv )
       {
          fCopyOver = TRUE;
          control = atoi( argv[3] );
-#ifdef IMC
-         imcsocket = atoi( argv[4] );
-#endif
       }
       else
          fCopyOver = FALSE;
@@ -521,18 +538,20 @@ int main( int argc, char **argv )
    }
 #endif /* WIN32 */
 
+   /*
+    * If this all goes well, we should be able to open a new log file during hotboot 
+    */
+   if( fCopyOver )
+   {
+      open_mud_log(  );
+      log_string( "Hotboot: Spawning new log file." );
+   }
+
    log_string( "Booting Database" );
    boot_db( fCopyOver );
    log_string( "Initializing socket" );
    if( !fCopyOver )  /* We have already the port if copyover'ed */
       control = init_socket( port );
-
-#ifdef IMC
-   /*
-    * Initialize and connect to IMC2 
-    */
-   imc_startup( FALSE, imcsocket, fCopyOver );
-#endif
 
    log_printf( "%s ready on port %d.", sysdata.mud_name, port );
 
@@ -546,10 +565,6 @@ int main( int argc, char **argv )
 
    close( control );
 
-#ifdef IMC
-   imc_shutdown( FALSE );
-#endif
-
 #ifdef WIN32
    /*
     * Shut down Windows sockets 
@@ -558,7 +573,6 @@ int main( int argc, char **argv )
    WSACleanup(  );   /* clean up */
    kill_timer(  );   /* stop timer thread */
 #endif
-
 
    /*
     * That's all, folks.
@@ -571,25 +585,42 @@ int main( int argc, char **argv )
    exit( 0 );
 }
 
+/*
+ * This function supports connections for both IPv6 and IPv4.
+ * On a server which only has one type of address, it will still bind to both.
+ * Every major operating system these days supports both, even if they only have one type of address.
+ */
 int init_socket( int mudport )
 {
-   struct sockaddr_in sa;
-   int x = 1;
+   struct sockaddr_in6 serv_addr6;
+   int x = 1, ipv6only = 0;
    int fd;
 
-   if( ( fd = socket( AF_INET, SOCK_STREAM, 0 ) ) < 0 )
+   if( ( fd = socket( AF_INET6, SOCK_STREAM, 0 ) ) < 0 )
    {
       perror( "Init_socket: socket" );
       exit( 1 );
    }
 
-   if( setsockopt( fd, SOL_SOCKET, SO_REUSEADDR, ( void * )&x, sizeof( x ) ) < 0 )
+#if defined(WIN32)
+   if( setsockopt( fd, IPPROTO_IPV6, IPV6_V6ONLY, ( const char * )&ipv6only, sizeof( ipv6only ) ) < 0 )
+#else
+   if( setsockopt( fd, IPPROTO_IPV6, IPV6_V6ONLY, ( void * )&ipv6only, sizeof( ipv6only ) ) < 0 )
+#endif
    {
-      perror( "Init_socket: SO_REUSEADDR" );
+      perror( "Init_socket: IPPROTO_IPV6" );
       close( fd );
       exit( 1 );
    }
 
+/*
+ * SO_DONTLINGER no longer appears to be necessary so I've commented it out.
+ * If for some reason you find that the socket won't work correctly without it, uncomment it.
+ * Please let us know at smaugmuds.afkmods.com as well, describing what failed to work properly without it.
+ * I'm not even sure if the SYSV part is relevant these days as the only information that keeps coming
+ * up on Google is 15+ years old. -- Samson 1/22/2025.
+ */
+/*
 #if defined(SO_DONTLINGER) && !defined(SYSV)
    {
       struct linger ld;
@@ -597,7 +628,11 @@ int init_socket( int mudport )
       ld.l_onoff = 1;
       ld.l_linger = 1000;
 
+#if defined(WIN32)
+      if( setsockopt( fd, SOL_SOCKET, SO_DONTLINGER, ( const char * )&ld, sizeof( ld ) ) < 0 )
+#else
       if( setsockopt( fd, SOL_SOCKET, SO_DONTLINGER, ( void * )&ld, sizeof( ld ) ) < 0 )
+#endif
       {
          perror( "Init_socket: SO_DONTLINGER" );
          close( fd );
@@ -605,12 +640,42 @@ int init_socket( int mudport )
       }
    }
 #endif
+*/
 
-   memset( &sa, '\0', sizeof( sa ) );
-   sa.sin_family = AF_INET;
-   sa.sin_port = htons( mudport );
+/* 
+ * SO_REUSEADDR, however, is still necessary or the socket will only be able to bind to one
+ * protocol. The MUD will fail to start, saying the address is already in use when the second
+ * attempt to bind is made by the operating system. -- Samson 1/22/2025.
+ */
+#if defined(WIN32)
+   if( setsockopt( fd, SOL_SOCKET, SO_REUSEADDR, ( const char * )&x, sizeof( x ) ) < 0 )
+#else
+   if( setsockopt( fd, SOL_SOCKET, SO_REUSEADDR, ( void * )&x, sizeof( x ) ) < 0 )
+#endif
+   {
+      perror( "Init_socket: SO_REUSEADDR" );
+      close( fd );
+      exit( 1 );
+   }
 
-   if( bind( fd, ( struct sockaddr * )&sa, sizeof( sa ) ) == -1 )
+   memset( &serv_addr6, '\0', sizeof( serv_addr6 ) );
+   serv_addr6.sin6_family = AF_INET6;
+   serv_addr6.sin6_addr = in6addr_any;
+   serv_addr6.sin6_port = htons( mudport );
+
+   /*
+    * It is highly unlikely that a server will call for this, but just in case it does, you would need
+    * to uncomment the statement and specify the IP address of your server. Currently this only works
+    * for IPv4. I have not been able to find information on how to call this for the IPV6 side, so it's
+    * entirely possible that it was not seen as a thing to do with IPv6. -- Samson 1/22/2025.
+    *
+    * sa.sin_addr.s_addr = inet_addr( "x.x.x.x" ); 
+    */
+#if defined(__APPLE__)
+   if( bind( fd, ( const struct sockaddr * )&serv_addr6, (socklen_t)sizeof( serv_addr6 ) ) == -1 )
+#else
+   if( bind( fd, ( struct sockaddr * )&serv_addr6, sizeof( serv_addr6 ) ) == -1 )
+#endif
    {
       perror( "Init_socket: bind" );
       close( fd );
@@ -663,8 +728,9 @@ void caught_alarm( int signum )
    char buf[MAX_STRING_LENGTH];
 
    bug( "%s: ALARM CLOCK!  In section %s", __func__, alarm_section );
-   mudstrlcpy( buf, "Alas, the hideous malevalent entity known only as 'Lag' rises once more!\r\n", MAX_STRING_LENGTH );
+   strlcpy( buf, "Alas, the hideous malevalent entity known only as 'Lag' rises once more!\r\n", MAX_STRING_LENGTH );
    echo_to_all( AT_IMMORT, buf, ECHOTAR_ALL );
+
    if( newdesc )
    {
       FD_CLR( newdesc, &in_set );
@@ -728,6 +794,7 @@ void accept_new( int ctrl )
    FD_SET( ctrl, &in_set );
    maxdesc = ctrl;
    newdesc = 0;
+
    for( d = first_descriptor; d; d = d->next )
    {
       maxdesc = UMAX( maxdesc, d->descriptor );
@@ -858,7 +925,7 @@ void game_loop( void )
                d->fcommand = TRUE;
                stop_idling( d->character );
 
-               mudstrlcpy( cmdline, d->incomm, MAX_INPUT_LENGTH );
+               strlcpy( cmdline, d->incomm, MAX_INPUT_LENGTH );
                d->incomm[0] = '\0';
 
                if( d->character )
@@ -884,10 +951,6 @@ void game_loop( void )
          if( d == last_descriptor )
             break;
       }
-
-#ifdef IMC
-      imc_loop(  );
-#endif
 
       /*
        * Autonomous game motion.
@@ -978,21 +1041,22 @@ void game_loop( void )
       save_morphs(  );
 
    fflush( stderr ); /* make sure strerr is flushed */
-   return;
 }
 
 void new_descriptor( int new_desc )
 {
-   char buf[MAX_STRING_LENGTH];
-   char log_buf[MAX_STRING_LENGTH];
    DESCRIPTOR_DATA *dnew;
-   struct sockaddr_in sock;
+   struct sockaddr_in6 sock;
    int desc;
-#ifndef WIN32
-   socklen_t size;
+   char ip[INET6_ADDRSTRLEN];
+   char buf[MAX_STRING_LENGTH];
+   string newip;
+#if defined(WIN32)
+   ULONG r;
+   int size;
 #else
-   unsigned int size;
-   unsigned long arg = 1;
+   int r;
+   socklen_t size;
 #endif
 
    size = sizeof( sock );
@@ -1002,11 +1066,10 @@ void new_descriptor( int new_desc )
       return;
    }
    set_alarm( 20 );
-   alarm_section = "new_descriptor::accept";
+   alarm_section = "new_descriptor: accept";
    if( ( desc = accept( new_desc, ( struct sockaddr * )&sock, &size ) ) < 0 )
    {
       perror( "New_descriptor: accept" );
-      log_printf_plus( LOG_COMM, sysdata.log_level, "%s", "[*****] BUG: New_descriptor: accept" );
       set_alarm( 0 );
       return;
    }
@@ -1015,25 +1078,47 @@ void new_descriptor( int new_desc )
       set_alarm( 0 );
       return;
    }
-#if !defined(FNDELAY)
-#define FNDELAY O_NDELAY
-#endif
 
    set_alarm( 20 );
    alarm_section = "new_descriptor: after accept";
 
-#ifdef WIN32
-   if( ioctlsocket( desc, FIONBIO, &arg ) == -1 )
-#else
-   if( fcntl( desc, F_SETFL, FNDELAY ) == -1 )
-#endif
+#if defined(WIN32)
+   r = 1;
+   if( ioctlsocket( desc, FIONBIO, &r ) == SOCKET_ERROR )
    {
-      perror( "New_descriptor: fcntl: FNDELAY" );
-      set_alarm( 0 );
+      perror( "New_descriptor: fcntl: O_NONBLOCK" );
+      close( desc );
       return;
    }
+#else
+   r = fcntl( desc, F_GETFL, 0 );
+   if( r < 0 || fcntl( desc, F_SETFL, O_NONBLOCK | O_NDELAY | r ) < 0 )
+   {
+      perror( "New_descriptor: fcntl: O_NONBLOCK" );
+      close( desc );
+      return;
+   }
+#endif
+
    if( check_bad_desc( new_desc ) )
       return;
+
+   inet_ntop( AF_INET6, &sock.sin6_addr, ip, INET6_ADDRSTRLEN );
+   newip = ip;
+
+   if( newip != "::1" )
+   {
+      string::size_type pos = newip.find_last_of( ":", newip.length() );
+      string::size_type pos2 = newip.find_last_of( ".", newip.length() );
+
+      if( pos2 != string::npos )
+      {
+         if( pos != string::npos )
+         {
+            newip = newip.substr( pos + 1 );
+         }
+      }
+   }
 
    CREATE( dnew, DESCRIPTOR_DATA, 1 );
    dnew->next = NULL;
@@ -1043,9 +1128,10 @@ void new_descriptor( int new_desc )
    dnew->idle = 0;
    dnew->lines = 0;
    dnew->scrlen = 24;
-   dnew->port = ntohs( sock.sin_port );
+   dnew->port = ntohs( sock.sin6_port );
    dnew->newstate = 0;
    dnew->prevcolor = 0x07;
+   dnew->host = STRALLOC( newip.c_str() );
    dnew->ifd = -1;   /* Descriptor pipes, used for DNS resolution and such */
    dnew->ipid = -1;
    dnew->can_compress = FALSE;
@@ -1053,14 +1139,12 @@ void new_descriptor( int new_desc )
 
    CREATE( dnew->outbuf, char, dnew->outsize );
 
-   mudstrlcpy( log_buf, inet_ntoa( sock.sin_addr ), MAX_STRING_LENGTH );
-   dnew->host = STRALLOC( log_buf );
    if( !sysdata.NO_NAME_RESOLVING )
    {
-      mudstrlcpy( buf, in_dns_cache( log_buf ), MAX_STRING_LENGTH );
+      strlcpy( buf, in_dns_cache( dnew->host ), MAX_STRING_LENGTH );
 
       if( buf[0] == '\0' )
-         resolve_dns( dnew, sock.sin_addr.s_addr );
+         resolve_dns( dnew, dnew->host );
       else
       {
          STRFREE( dnew->host );
@@ -1079,7 +1163,6 @@ void new_descriptor( int new_desc )
    /*
     * Init descriptor data.
     */
-
    if( !last_descriptor && first_descriptor )
    {
       DESCRIPTOR_DATA *d;
@@ -1115,15 +1198,14 @@ void new_descriptor( int new_desc )
       if( sysdata.time_of_max )
          DISPOSE( sysdata.time_of_max );
       snprintf( buf, MAX_STRING_LENGTH, "%24.24s", ctime( &current_time ) );
-      sysdata.time_of_max = str_dup( buf );
+      sysdata.time_of_max = strdup( buf );
       sysdata.alltimemax = sysdata.maxplayers;
-      snprintf( log_buf, MAX_STRING_LENGTH, "Broke all-time maximum player record: %d", sysdata.alltimemax );
-      log_string_plus( log_buf, LOG_COMM, sysdata.log_level );
-      to_channel( log_buf, CHANNEL_MONITOR, "Monitor", LEVEL_IMMORTAL );
+      snprintf( buf, MAX_STRING_LENGTH, "Broke all-time maximum player record: %d", sysdata.alltimemax );
+      log_string_plus( buf, LOG_COMM, sysdata.log_level );
+      to_channel( buf, CHANNEL_MONITOR, "Monitor", LEVEL_IMMORTAL );
       save_sysdata( sysdata );
    }
    set_alarm( 0 );
-   return;
 }
 
 void free_desc( DESCRIPTOR_DATA * d )
@@ -1136,7 +1218,6 @@ void free_desc( DESCRIPTOR_DATA * d )
       DISPOSE( d->pagebuf );
    DISPOSE( d->mccp );
    DISPOSE( d );
-   return;
 }
 
 void close_socket( DESCRIPTOR_DATA * dclose, bool force )
@@ -1152,6 +1233,7 @@ void close_socket( DESCRIPTOR_DATA * dclose, bool force )
       kill( dclose->ipid, SIGKILL );
       waitpid( dclose->ipid, &status, 0 );
    }
+
    if( dclose->ifd != -1 )
       close( dclose->ifd );
 
@@ -1290,7 +1372,6 @@ void close_socket( DESCRIPTOR_DATA * dclose, bool force )
 
    free_desc( dclose );
    --num_descriptors;
-   return;
 }
 
 bool read_from_descriptor( DESCRIPTOR_DATA * d )
@@ -1441,7 +1522,7 @@ void read_from_buffer( DESCRIPTOR_DATA * d )
 /*		log_printf( "%s input spamming!", d->host );
 */
             write_to_descriptor( d, "\r\n*** PUT A LID ON IT!!! ***\r\nYou cannot enter the same command more than 20 consecutive times!\r\n", 0 );
-            mudstrlcpy( d->incomm, "quit", MAX_INPUT_LENGTH );
+            strlcpy( d->incomm, "quit", MAX_INPUT_LENGTH );
          }
       }
    }
@@ -1450,9 +1531,9 @@ void read_from_buffer( DESCRIPTOR_DATA * d )
     * Do '!' substitution.
     */
    if( d->incomm[0] == '!' )
-      mudstrlcpy( d->incomm, d->inlast, MAX_INPUT_LENGTH );
+      strlcpy( d->incomm, d->inlast, MAX_INPUT_LENGTH );
    else
-      mudstrlcpy( d->inlast, d->incomm, MAX_INPUT_LENGTH );
+      strlcpy( d->inlast, d->incomm, MAX_INPUT_LENGTH );
 
    /*
     * Shift the input buffer.
@@ -1461,7 +1542,6 @@ void read_from_buffer( DESCRIPTOR_DATA * d )
       i++;
    for( j = 0; ( d->inbuf[j] = d->inbuf[i + j] ) != '\0'; j++ )
       ;
-   return;
 }
 
 /*
@@ -1645,22 +1725,21 @@ void write_to_buffer( DESCRIPTOR_DATA * d, const char *txt, size_t length )
    strncpy( d->outbuf + d->outtop, txt, length );
    d->outtop += length;
    d->outbuf[d->outtop] = '\0';
-   return;
 }
 
 void buffer_printf( DESCRIPTOR_DATA * d, const char *fmt, ... )
 {
-    char buf[MAX_STRING_LENGTH * 2];
+   char buf[MAX_STRING_LENGTH * 2];
 
-    va_list args;
+   va_list args;
 
-    va_start( args, fmt );
-    vsprintf( buf, fmt, args );
-    va_end( args );
+   va_start( args, fmt );
+   vsprintf( buf, fmt, args );
+   va_end( args );
 
-    write_to_buffer( d, buf, strlen( buf ) );
+   write_to_buffer( d, buf, strlen( buf ) );
 }
-   
+
 /*
 * This is the MCCP version. Use write_to_descriptor_old to send non-compressed text.
 * Updated to run with the block checks by Orion... if it doesn't work, blame
@@ -1769,15 +1848,15 @@ bool write_to_descriptor( DESCRIPTOR_DATA * d, const char *txt, int length )
 
 void descriptor_printf( DESCRIPTOR_DATA * d, const char *fmt, ... )
 {
-    char buf[MAX_STRING_LENGTH * 2];
+   char buf[MAX_STRING_LENGTH * 2];
 
-    va_list args;
+   va_list args;
 
-    va_start( args, fmt );
+   va_start( args, fmt );
     vsprintf( buf, fmt, args );
-    va_end( args );
+   va_end( args );
 
-    write_to_descriptor( d, buf, strlen( buf ) );
+   write_to_descriptor( d, buf, strlen( buf ) );
 }
 
 /*
@@ -2085,7 +2164,7 @@ void nanny_get_old_password( DESCRIPTOR_DATA * d, char *argument )
    if( chk == TRUE )
       return;
 
-   mudstrlcpy( buf, ch->pcdata->filename, MAX_STRING_LENGTH );
+   strlcpy( buf, ch->pcdata->filename, MAX_STRING_LENGTH );
    d->character->desc = NULL;
    free_char( d->character );
    d->character = NULL;
@@ -2166,7 +2245,7 @@ void nanny_get_new_password( DESCRIPTOR_DATA * d, char *argument )
    }
    pwdnew = sha256_crypt( argument );  /* SHA-256 Encryption */
    DISPOSE( ch->pcdata->pwd );
-   ch->pcdata->pwd = str_dup( pwdnew );
+   ch->pcdata->pwd = strdup( pwdnew );
    write_to_buffer( d, "\r\nPlease retype the password to confirm: ", 0 );
    d->connected = CON_CONFIRM_NEW_PASSWORD;
 }
@@ -2228,17 +2307,17 @@ void nanny_get_new_sex( DESCRIPTOR_DATA * d, char *argument )
          {
             if( strlen( buf ) + strlen( class_table[iClass]->who_name ) > 77 )
             {
-               mudstrlcat( buf, "\r\n", MAX_STRING_LENGTH );
+               strlcat( buf, "\r\n", MAX_STRING_LENGTH );
                write_to_buffer( d, buf, 0 );
                buf[0] = '\0';
             }
             else
-               mudstrlcat( buf, " ", MAX_STRING_LENGTH );
+               strlcat( buf, " ", MAX_STRING_LENGTH );
          }
-         mudstrlcat( buf, class_table[iClass]->who_name, MAX_STRING_LENGTH );
+         strlcat( buf, class_table[iClass]->who_name, MAX_STRING_LENGTH );
       }
    }
-   mudstrlcat( buf, "]\r\n: ", MAX_STRING_LENGTH );
+   strlcat( buf, "]\r\n: ", MAX_STRING_LENGTH );
    write_to_buffer( d, buf, 0 );
    d->connected = CON_GET_NEW_CLASS;
 }
@@ -2314,17 +2393,17 @@ void nanny_get_new_class( DESCRIPTOR_DATA * d, const char *argument )
          {
             if( strlen( buf ) + strlen( race_table[iRace]->race_name ) > 77 )
             {
-               mudstrlcat( buf, "\r\n", MAX_STRING_LENGTH );
+               strlcat( buf, "\r\n", MAX_STRING_LENGTH );
                write_to_buffer( d, buf, 0 );
                buf[0] = '\0';
             }
             else
-               mudstrlcat( buf, " ", MAX_STRING_LENGTH );
+               strlcat( buf, " ", MAX_STRING_LENGTH );
          }
-         mudstrlcat( buf, race_table[iRace]->race_name, MAX_STRING_LENGTH );
+         strlcat( buf, race_table[iRace]->race_name, MAX_STRING_LENGTH );
       }
    }
-   mudstrlcat( buf, "]\r\n: ", MAX_STRING_LENGTH );
+   strlcat( buf, "]\r\n: ", MAX_STRING_LENGTH );
    write_to_buffer( d, buf, 0 );
    d->connected = CON_GET_NEW_RACE;
 }
@@ -2438,6 +2517,7 @@ void nanny_press_enter( DESCRIPTOR_DATA * d, const char *argument )
       send_to_pager( "\033[2J", ch );
    else
       send_to_pager( "\014", ch );
+   set_pager_color( AT_PLAIN, ch );
    if( IS_IMMORTAL( ch ) )
       do_help( ch, "imotd" );
    if( ch->level == LEVEL_AVATAR )
@@ -2739,7 +2819,6 @@ void nanny( DESCRIPTOR_DATA * d, char *argument )
          nanny_delete_char( d, argument );
          break;
    }
-   return;
 }
 
 bool is_reserved_name( const char *name )
@@ -2836,7 +2915,7 @@ short check_reconnect( DESCRIPTOR_DATA * d, const char *name, bool fConn )
          if( fConn == FALSE )
          {
             DISPOSE( d->character->pcdata->pwd );
-            d->character->pcdata->pwd = str_dup( ch->pcdata->pwd );
+            d->character->pcdata->pwd = strdup( ch->pcdata->pwd );
          }
          else
          {
@@ -2943,7 +3022,6 @@ void stop_idling( CHAR_DATA * ch )
    mprog_void_trigger( ch );
 
    act( AT_ACTION, "$n has returned from the void.", ch, NULL, NULL, TO_ROOM );
-   return;
 }
 
 /*
@@ -3202,7 +3280,7 @@ char *act_string( const char *format, CHAR_DATA * to, CHAR_DATA * ch, const void
       while( ( *point = *i ) != '\0' )
          ++point, ++i;
    }
-   mudstrlcpy( point, "\r\n", MSL );
+   strlcpy( point, "\r\n", MSL );
 
    if( !DONT_UPPER )
    {
@@ -3412,10 +3490,9 @@ void act( short AType, const char *format, CHAR_DATA * ch, const void *arg1, con
       }
    }
    MOBtrigger = TRUE;
-   return;
 }
 
-void do_name( CHAR_DATA* ch, const char* argument)
+void do_name( CHAR_DATA* ch, const char* argument )
 {
    char ucase_argument[MAX_STRING_LENGTH];
    char fname[1024];
@@ -3428,7 +3505,7 @@ void do_name( CHAR_DATA* ch, const char* argument)
       return;
    }
 
-   mudstrlcpy( ucase_argument, argument, MAX_STRING_LENGTH );
+   strlcpy( ucase_argument, argument, MAX_STRING_LENGTH );
    ucase_argument[0] = UPPER( argument[0] );
 
    if( !check_parse_name( ucase_argument, TRUE ) )
@@ -3471,7 +3548,6 @@ void do_name( CHAR_DATA* ch, const char* argument)
    ch->pcdata->filename = STRALLOC( ucase_argument );
    send_to_char( "Your name has been changed.  Please apply again.\r\n", ch );
    ch->pcdata->auth_state = 1;
-   return;
 }
 
 /* Alternate Self delete command provided by Waldemar Thiel (Swiv) */
@@ -3479,7 +3555,6 @@ void do_name( CHAR_DATA* ch, const char* argument)
 void do_delet( CHAR_DATA *ch, const char *argument )
 {
    send_to_char( "If you want to DELETE, spell it out.\r\n", ch );
-   return;
 }
 
 void do_delete( CHAR_DATA *ch, const char *argument )
@@ -3512,21 +3587,20 @@ void do_delete( CHAR_DATA *ch, const char *argument )
    send_to_char( "[DELETE] Password: ", ch );
    write_to_buffer( ch->desc, (const char *)echo_off_str, 0 );
    ch->desc->connected = CON_DELETE;
-   return;
 }
 
 char *default_fprompt( CHAR_DATA * ch )
 {
    static char buf[60];
 
-   mudstrlcpy( buf, "&w<&Y%hhp ", 60 );
+   strlcpy( buf, "&w<&Y%hhp ", 60 );
    if( IS_VAMPIRE( ch ) )
-      mudstrlcat( buf, "&R%bbp", 60 );
+      strlcat( buf, "&R%bbp", 60 );
    else
-      mudstrlcat( buf, "&C%mm", 60 );
-   mudstrlcat( buf, " &G%vmv&w> ", 60 );
+      strlcat( buf, "&C%mm", 60 );
+   strlcat( buf, " &G%vmv&w> ", 60 );
    if( IS_NPC( ch ) || IS_IMMORTAL( ch ) )
-      mudstrlcat( buf, "%i%R", 60 );
+      strlcat( buf, "%i%R", 60 );
    return buf;
 }
 
@@ -3534,14 +3608,14 @@ char *default_prompt( CHAR_DATA * ch )
 {
    static char buf[60];
 
-   mudstrlcpy( buf, "&w<&Y%hhp ", 60 );
+   strlcpy( buf, "&w<&Y%hhp ", 60 );
    if( IS_VAMPIRE( ch ) )
-      mudstrlcat( buf, "&R%bbp", 60 );
+      strlcat( buf, "&R%bbp", 60 );
    else
-      mudstrlcat( buf, "&C%mm", 60 );
-   mudstrlcat( buf, " &G%vmv&w> ", 60 );
+      strlcat( buf, "&C%mm", 60 );
+   strlcat( buf, " &G%vmv&w> ", 60 );
    if( IS_NPC( ch ) || IS_IMMORTAL( ch ) )
-      mudstrlcat( buf, "%i%R", 60 );
+      strlcat( buf, "%i%R", 60 );
    return buf;
 }
 
@@ -3593,7 +3667,7 @@ void display_prompt( DESCRIPTOR_DATA * d )
 
    if( ansi )
    {
-      mudstrlcpy( pbuf, ANSI_RESET, MAX_STRING_LENGTH );
+      strlcpy( pbuf, ANSI_RESET, MAX_STRING_LENGTH );
       d->prevcolor = 0x08;
       pbuf += 4;
    }
@@ -3644,11 +3718,11 @@ void display_prompt( DESCRIPTOR_DATA * d )
                   if( ch->level >= 10 )
                      pstat = ch->alignment;
                   else if( IS_GOOD( ch ) )
-                     mudstrlcpy( pbuf, "good", MAX_STRING_LENGTH );
+                     strlcpy( pbuf, "good", MAX_STRING_LENGTH );
                   else if( IS_EVIL( ch ) )
-                     mudstrlcpy( pbuf, "evil", MAX_STRING_LENGTH );
+                     strlcpy( pbuf, "evil", MAX_STRING_LENGTH );
                   else
-                     mudstrlcpy( pbuf, "neutral", MAX_STRING_LENGTH );
+                     strlcpy( pbuf, "neutral", MAX_STRING_LENGTH );
                   break;
 
                case 'A':
@@ -3658,9 +3732,9 @@ void display_prompt( DESCRIPTOR_DATA * d )
 
                case 'C':  /* Tank */
                   if( !ch->fighting || ( victim = ch->fighting->who ) == NULL )
-                     mudstrlcpy( pbuf, "N/A", MAX_STRING_LENGTH );
+                     strlcpy( pbuf, "N/A", MAX_STRING_LENGTH );
                   else if( !victim->fighting || ( victim = victim->fighting->who ) == NULL )
-                     mudstrlcpy( pbuf, "N/A", MAX_STRING_LENGTH );
+                     strlcpy( pbuf, "N/A", MAX_STRING_LENGTH );
                   else
                   {
                      if( victim->max_hit > 0 )
@@ -3668,33 +3742,33 @@ void display_prompt( DESCRIPTOR_DATA * d )
                      else
                         percent = -1;
                      if( percent >= 100 )
-                        mudstrlcpy( pbuf, "perfect health", MAX_STRING_LENGTH );
+                        strlcpy( pbuf, "perfect health", MAX_STRING_LENGTH );
                      else if( percent >= 90 )
-                        mudstrlcpy( pbuf, "slightly scratched", MAX_STRING_LENGTH );
+                        strlcpy( pbuf, "slightly scratched", MAX_STRING_LENGTH );
                      else if( percent >= 80 )
-                        mudstrlcpy( pbuf, "few bruises", MAX_STRING_LENGTH );
+                        strlcpy( pbuf, "few bruises", MAX_STRING_LENGTH );
                      else if( percent >= 70 )
-                        mudstrlcpy( pbuf, "some cuts", MAX_STRING_LENGTH );
+                        strlcpy( pbuf, "some cuts", MAX_STRING_LENGTH );
                      else if( percent >= 60 )
-                        mudstrlcpy( pbuf, "several wounds", MAX_STRING_LENGTH );
+                        strlcpy( pbuf, "several wounds", MAX_STRING_LENGTH );
                      else if( percent >= 50 )
-                        mudstrlcpy( pbuf, "nasty wounds", MAX_STRING_LENGTH );
+                        strlcpy( pbuf, "nasty wounds", MAX_STRING_LENGTH );
                      else if( percent >= 40 )
-                        mudstrlcpy( pbuf, "bleeding freely", MAX_STRING_LENGTH );
+                        strlcpy( pbuf, "bleeding freely", MAX_STRING_LENGTH );
                      else if( percent >= 30 )
-                        mudstrlcpy( pbuf, "covered in blood", MAX_STRING_LENGTH );
+                        strlcpy( pbuf, "covered in blood", MAX_STRING_LENGTH );
                      else if( percent >= 20 )
-                        mudstrlcpy( pbuf, "leaking guts", MAX_STRING_LENGTH );
+                        strlcpy( pbuf, "leaking guts", MAX_STRING_LENGTH );
                      else if( percent >= 10 )
-                        mudstrlcpy( pbuf, "almost dead", MAX_STRING_LENGTH );
+                        strlcpy( pbuf, "almost dead", MAX_STRING_LENGTH );
                      else
-                        mudstrlcpy( pbuf, "DYING", MAX_STRING_LENGTH );
+                        strlcpy( pbuf, "DYING", MAX_STRING_LENGTH );
                   }
                   break;
 
                case 'c':
                   if( !ch->fighting || ( victim = ch->fighting->who ) == NULL )
-                     mudstrlcpy( pbuf, "N/A", MAX_STRING_LENGTH );
+                     strlcpy( pbuf, "N/A", MAX_STRING_LENGTH );
                   else
                   {
                      if( victim->max_hit > 0 )
@@ -3702,27 +3776,27 @@ void display_prompt( DESCRIPTOR_DATA * d )
                      else
                         percent = -1;
                      if( percent >= 100 )
-                        mudstrlcpy( pbuf, "perfect health", MAX_STRING_LENGTH );
+                        strlcpy( pbuf, "perfect health", MAX_STRING_LENGTH );
                      else if( percent >= 90 )
-                        mudstrlcpy( pbuf, "slightly scratched", MAX_STRING_LENGTH );
+                        strlcpy( pbuf, "slightly scratched", MAX_STRING_LENGTH );
                      else if( percent >= 80 )
-                        mudstrlcpy( pbuf, "few bruises", MAX_STRING_LENGTH );
+                        strlcpy( pbuf, "few bruises", MAX_STRING_LENGTH );
                      else if( percent >= 70 )
-                        mudstrlcpy( pbuf, "some cuts", MAX_STRING_LENGTH );
+                        strlcpy( pbuf, "some cuts", MAX_STRING_LENGTH );
                      else if( percent >= 60 )
-                        mudstrlcpy( pbuf, "several wounds", MAX_STRING_LENGTH );
+                        strlcpy( pbuf, "several wounds", MAX_STRING_LENGTH );
                      else if( percent >= 50 )
-                        mudstrlcpy( pbuf, "nasty wounds", MAX_STRING_LENGTH );
+                        strlcpy( pbuf, "nasty wounds", MAX_STRING_LENGTH );
                      else if( percent >= 40 )
-                        mudstrlcpy( pbuf, "bleeding freely", MAX_STRING_LENGTH );
+                        strlcpy( pbuf, "bleeding freely", MAX_STRING_LENGTH );
                      else if( percent >= 30 )
-                        mudstrlcpy( pbuf, "covered in blood", MAX_STRING_LENGTH );
+                        strlcpy( pbuf, "covered in blood", MAX_STRING_LENGTH );
                      else if( percent >= 20 )
-                        mudstrlcpy( pbuf, "leaking guts", MAX_STRING_LENGTH );
+                        strlcpy( pbuf, "leaking guts", MAX_STRING_LENGTH );
                      else if( percent >= 10 )
-                        mudstrlcpy( pbuf, "almost dead", MAX_STRING_LENGTH );
+                        strlcpy( pbuf, "almost dead", MAX_STRING_LENGTH );
                      else
-                        mudstrlcpy( pbuf, "DYING", MAX_STRING_LENGTH );
+                        strlcpy( pbuf, "DYING", MAX_STRING_LENGTH );
                   }
                   break;
 
@@ -3750,47 +3824,47 @@ void display_prompt( DESCRIPTOR_DATA * d )
 
                case 'N':  /* Tank */
                   if( !ch->fighting || ( victim = ch->fighting->who ) == NULL )
-                     mudstrlcpy( pbuf, "N/A", MAX_STRING_LENGTH );
+                     strlcpy( pbuf, "N/A", MAX_STRING_LENGTH );
                   else if( !victim->fighting || ( victim = victim->fighting->who ) == NULL )
-                     mudstrlcpy( pbuf, "N/A", MAX_STRING_LENGTH );
+                     strlcpy( pbuf, "N/A", MAX_STRING_LENGTH );
                   else
                   {
                      if( ch == victim )
-                        mudstrlcpy( pbuf, "You", MAX_STRING_LENGTH );
+                        strlcpy( pbuf, "You", MAX_STRING_LENGTH );
                      else if( IS_NPC( victim ) )
-                        mudstrlcpy( pbuf, victim->short_descr, MAX_STRING_LENGTH );
+                        strlcpy( pbuf, victim->short_descr, MAX_STRING_LENGTH );
                      else
-                        mudstrlcpy( pbuf, victim->name, MAX_STRING_LENGTH );
+                        strlcpy( pbuf, victim->name, MAX_STRING_LENGTH );
                      pbuf[0] = UPPER( pbuf[0] );
                   }
                   break;
 
                case 'n':
                   if( !ch->fighting || ( victim = ch->fighting->who ) == NULL )
-                     mudstrlcpy( pbuf, "N/A", MAX_STRING_LENGTH );
+                     strlcpy( pbuf, "N/A", MAX_STRING_LENGTH );
                   else
                   {
                      if( ch == victim )
-                        mudstrlcpy( pbuf, "You", MAX_STRING_LENGTH );
+                        strlcpy( pbuf, "You", MAX_STRING_LENGTH );
                      else if( IS_NPC( victim ) )
-                        mudstrlcpy( pbuf, victim->short_descr, MAX_STRING_LENGTH );
+                        strlcpy( pbuf, victim->short_descr, MAX_STRING_LENGTH );
                      else
-                        mudstrlcpy( pbuf, victim->name, MAX_STRING_LENGTH );
+                        strlcpy( pbuf, victim->name, MAX_STRING_LENGTH );
                      pbuf[0] = UPPER( pbuf[0] );
                   }
                   break;
 
                case 'T':
                   if( time_info.hour < 5 )
-                     mudstrlcpy( pbuf, "night", MAX_STRING_LENGTH );
+                     strlcpy( pbuf, "night", MAX_STRING_LENGTH );
                   else if( time_info.hour < 6 )
-                     mudstrlcpy( pbuf, "dawn", MAX_STRING_LENGTH );
+                     strlcpy( pbuf, "dawn", MAX_STRING_LENGTH );
                   else if( time_info.hour < 19 )
-                     mudstrlcpy( pbuf, "day", MAX_STRING_LENGTH );
+                     strlcpy( pbuf, "day", MAX_STRING_LENGTH );
                   else if( time_info.hour < 21 )
-                     mudstrlcpy( pbuf, "dusk", MAX_STRING_LENGTH );
+                     strlcpy( pbuf, "dusk", MAX_STRING_LENGTH );
                   else
-                     mudstrlcpy( pbuf, "night", MAX_STRING_LENGTH );
+                     strlcpy( pbuf, "night", MAX_STRING_LENGTH );
                   break;
 
                case 'b':
@@ -3846,7 +3920,7 @@ void display_prompt( DESCRIPTOR_DATA * d )
                   if( IS_IMMORTAL(ch) )
                   {
                      if( IS_SET( ch->pcdata->flags, PCFLAG_DND ) )
-                        mudstrlcpy( pbuf, "DND", MAX_STRING_LENGTH );
+                        strlcpy( pbuf, "DND", MAX_STRING_LENGTH );
                   }
                   break;
 
@@ -3868,20 +3942,20 @@ void display_prompt( DESCRIPTOR_DATA * d )
 
                case 'o':  /* display name of object on auction */
                   if( auction->item )
-                     mudstrlcpy( pbuf, auction->item->name, MAX_STRING_LENGTH );
+                     strlcpy( pbuf, auction->item->name, MAX_STRING_LENGTH );
                   break;
 
                case 'S':
                   if( ch->style == STYLE_BERSERK )
-                     mudstrlcpy( pbuf, "B", MAX_STRING_LENGTH );
+                     strlcpy( pbuf, "B", MAX_STRING_LENGTH );
                   else if( ch->style == STYLE_AGGRESSIVE )
-                     mudstrlcpy( pbuf, "A", MAX_STRING_LENGTH );
+                     strlcpy( pbuf, "A", MAX_STRING_LENGTH );
                   else if( ch->style == STYLE_DEFENSIVE )
-                     mudstrlcpy( pbuf, "D", MAX_STRING_LENGTH );
+                     strlcpy( pbuf, "D", MAX_STRING_LENGTH );
                   else if( ch->style == STYLE_EVASIVE )
-                     mudstrlcpy( pbuf, "E", MAX_STRING_LENGTH );
+                     strlcpy( pbuf, "E", MAX_STRING_LENGTH );
                   else
-                     mudstrlcpy( pbuf, "S", MAX_STRING_LENGTH );
+                     strlcpy( pbuf, "S", MAX_STRING_LENGTH );
                   break;
 
                case 'i':
@@ -3890,7 +3964,7 @@ void display_prompt( DESCRIPTOR_DATA * d )
                      snprintf( pbuf, MAX_STRING_LENGTH, "(Invis %d) ",
                                ( IS_NPC( ch ) ? ch->mobinvis : ch->pcdata->wizinvis ) );
                   else if( IS_AFFECTED( ch, AFF_INVISIBLE ) )
-                     mudstrlcpy( pbuf, "(Invis) ", MAX_STRING_LENGTH );
+                     strlcpy( pbuf, "(Invis) ", MAX_STRING_LENGTH );
                   break;
 
                case 'I':
@@ -3906,7 +3980,6 @@ void display_prompt( DESCRIPTOR_DATA * d )
    }
    *pbuf = '\0';
    send_to_char( buf, ch );
-   return;
 }
 
 void set_pager_input( DESCRIPTOR_DATA * d, char *argument )
@@ -3914,7 +3987,6 @@ void set_pager_input( DESCRIPTOR_DATA * d, char *argument )
    while( isspace( *argument ) )
       argument++;
    d->pagecmd = *argument;
-   return;
 }
 
 bool pager_output( DESCRIPTOR_DATA * d )
@@ -4001,7 +4073,7 @@ bool pager_output( DESCRIPTOR_DATA * d )
 
 #ifdef WIN32
 
-void shutdown_mud( char *reason );
+void shutdown_mud( const char *reason );
 
 void bailout( void )
 {
@@ -4012,7 +4084,6 @@ void bailout( void )
    mud_down = TRUE;  /* This will cause game_loop to exit */
    service_shut_down = TRUE;  /* This will cause characters to be saved */
    fflush( stderr );
-   return;
 }
 
 #endif

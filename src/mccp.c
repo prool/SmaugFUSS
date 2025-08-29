@@ -18,7 +18,7 @@
 /*
  * mccp.c - support functions for mccp (the Mud Client Compression Protocol)
  *
- * see https://smaugmuds.afkmods.com/mccp
+ * see https://smaugmuds.afkmods.com/mccp/
  *
  * Copyright (c) 1999, Oliver Jowett <oliver@randomly.org>.
  *
@@ -155,7 +155,7 @@ bool compressEnd( DESCRIPTOR_DATA * d )
    return TRUE;
 }
 
-void do_compress( CHAR_DATA* ch, const char* argument)
+void do_compress( CHAR_DATA* ch, const char* argument )
 {
    if( !ch->desc )
    {

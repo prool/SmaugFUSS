@@ -16,6 +16,7 @@
  ****************************************************************************/
 
 #include <stdio.h>
+#include <string.h>
 #if !defined(WIN32)
 #include <dlfcn.h>
 #else
@@ -101,12 +102,11 @@ void load_specfuns( void )
             break;
 
          CREATE( specfun, SPEC_LIST, 1 );
-         specfun->name = str_dup( word );
+         specfun->name = strdup( word );
          LINK( specfun, first_specfun, last_specfun, next, prev );
       }
       FCLOSE( fp );
    }
-   return;
 }
 
 /* Simple validation function to be sure a function can be used on mobs */
@@ -186,7 +186,6 @@ void summon_if_hating( CHAR_DATA * ch )
    else
       snprintf( buf, MAX_STRING_LENGTH, "summon %s", name );
    do_cast( ch, buf );
-   return;
 }
 
 /*

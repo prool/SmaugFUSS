@@ -234,7 +234,6 @@ void get_obj( CHAR_DATA * ch, OBJ_DATA * obj, OBJ_DATA * container )
    if( char_died( ch ) || obj_extracted( obj ) )
       return;
    oprog_get_trigger( ch, obj );
-   return;
 }
 
 void do_connect( CHAR_DATA *ch, const char *argument )
@@ -292,7 +291,7 @@ void do_connect( CHAR_DATA *ch, const char *argument )
    }
 }
 
-void do_get( CHAR_DATA* ch, const char* argument)
+void do_get( CHAR_DATA* ch, const char* argument )
 {
    char arg1[MAX_INPUT_LENGTH];
    char arg2[MAX_INPUT_LENGTH];
@@ -657,10 +656,9 @@ void do_get( CHAR_DATA* ch, const char* argument)
             save_char_obj( ch );
       }
    }
-   return;
 }
 
-void do_put( CHAR_DATA* ch, const char* argument)
+void do_put( CHAR_DATA* ch, const char* argument )
 {
    char arg1[MAX_INPUT_LENGTH];
    char arg2[MAX_INPUT_LENGTH];
@@ -943,10 +941,9 @@ void do_put( CHAR_DATA* ch, const char* argument)
                save_storeroom( ch, vault->vnum );
       }
    }
-   return;
 }
 
-void do_drop( CHAR_DATA* ch, const char* argument)
+void do_drop( CHAR_DATA* ch, const char* argument )
 {
    char arg[MAX_INPUT_LENGTH];
    OBJ_DATA *obj;
@@ -1167,10 +1164,9 @@ void do_drop( CHAR_DATA* ch, const char* argument)
 
    if( IS_SET( sysdata.save_flags, SV_DROP ) )
       save_char_obj( ch ); /* duping protector */
-   return;
 }
 
-void do_give( CHAR_DATA* ch, const char* argument)
+void do_give( CHAR_DATA* ch, const char* argument )
 {
    char arg1[MAX_INPUT_LENGTH];
    char arg2[MAX_INPUT_LENGTH];
@@ -1229,9 +1225,9 @@ void do_give( CHAR_DATA* ch, const char* argument)
 
       ch->gold -= amount;
       victim->gold += amount;
-      mudstrlcpy( buf, "$n gives you ", MAX_STRING_LENGTH );
-      mudstrlcat( buf, arg1, MAX_STRING_LENGTH );
-      mudstrlcat( buf, ( amount > 1 ) ? " coins." : " coin.", MAX_STRING_LENGTH );
+      strlcpy( buf, "$n gives you ", MAX_INPUT_LENGTH );
+      strlcat( buf, arg1, MAX_INPUT_LENGTH );
+      strlcat( buf, ( amount > 1 ) ? " coins." : " coin.", MAX_INPUT_LENGTH );
 
       set_char_color( AT_GOLD, victim );
       act( AT_ACTION, buf, ch, NULL, victim, TO_VICT );
@@ -1304,7 +1300,6 @@ void do_give( CHAR_DATA* ch, const char* argument)
       save_char_obj( ch );
    if( IS_SET( sysdata.save_flags, SV_RECEIVE ) && !char_died( victim ) )
       save_char_obj( victim );
-   return;
 }
 
 /*
@@ -2123,7 +2118,7 @@ void wear_obj( CHAR_DATA * ch, OBJ_DATA * obj, bool fReplace, short wear_bit )
    }
 }
 
-void do_wear( CHAR_DATA* ch, const char* argument)
+void do_wear( CHAR_DATA* ch, const char* argument )
 {
    char arg1[MAX_INPUT_LENGTH];
    char arg2[MAX_INPUT_LENGTH];
@@ -2173,13 +2168,9 @@ void do_wear( CHAR_DATA* ch, const char* argument)
          wear_bit = -1;
       wear_obj( ch, obj, TRUE, wear_bit );
    }
-
-   return;
 }
 
-
-
-void do_remove( CHAR_DATA* ch, const char* argument)
+void do_remove( CHAR_DATA* ch, const char* argument )
 {
    char arg[MAX_INPUT_LENGTH];
    OBJ_DATA *obj, *obj_next;
@@ -2219,11 +2210,9 @@ void do_remove( CHAR_DATA* ch, const char* argument)
    }
 
    remove_obj( ch, obj->wear_loc, TRUE );
-   return;
 }
 
-
-void do_bury( CHAR_DATA* ch, const char* argument)
+void do_bury( CHAR_DATA* ch, const char* argument )
 {
    char arg[MAX_INPUT_LENGTH];
    OBJ_DATA *obj;
@@ -2301,10 +2290,9 @@ void do_bury( CHAR_DATA* ch, const char* argument)
    act( AT_ACTION, "$n solemnly buries $p...", ch, obj, NULL, TO_ROOM );
    xSET_BIT( obj->extra_flags, ITEM_BURIED );
    WAIT_STATE( ch, URANGE( 10, move / 2, 100 ) );
-   return;
 }
 
-void do_sacrifice( CHAR_DATA* ch, const char* argument)
+void do_sacrifice( CHAR_DATA* ch, const char* argument )
 {
    char arg[MAX_INPUT_LENGTH];
    char buf[MAX_STRING_LENGTH];
@@ -2357,19 +2345,19 @@ void do_sacrifice( CHAR_DATA* ch, const char* argument)
    }
    if( !IS_NPC( ch ) && ch->pcdata->deity && ch->pcdata->deity->name[0] != '\0' )
    {
-      mudstrlcpy( name, ch->pcdata->deity->name, 50 );
+      strlcpy( name, ch->pcdata->deity->name, 50 );
    }
    else if( !IS_NPC( ch ) && IS_GUILDED( ch ) && sysdata.guild_overseer[0] != '\0' )
    {
-      mudstrlcpy( name, sysdata.guild_overseer, 50 );
+      strlcpy( name, sysdata.guild_overseer, 50 );
    }
    else if( !IS_NPC( ch ) && ch->pcdata->clan && ch->pcdata->clan->deity[0] != '\0' )
    {
-      mudstrlcpy( name, ch->pcdata->clan->deity, 50 );
+      strlcpy( name, ch->pcdata->clan->deity, 50 );
    }
    else
    {
-      mudstrlcpy( name, "Thoric", 50 );
+      strlcpy( name, "Thoric", 50 );
    }
    ch->gold += 1;
    if( obj->item_type == ITEM_CORPSE_NPC || obj->item_type == ITEM_CORPSE_PC )
@@ -2403,10 +2391,9 @@ void do_sacrifice( CHAR_DATA* ch, const char* argument)
 
    if( xIS_SET( ch->in_room->room_flags, ROOM_HOUSE ) )
       save_house_by_vnum( ch->in_room->vnum ); /* Prevent House Object Duplication */
-   return;
 }
 
-void do_brandish( CHAR_DATA* ch, const char* argument)
+void do_brandish( CHAR_DATA* ch, const char* argument )
 {
    CHAR_DATA *vch;
    CHAR_DATA *vch_next;
@@ -2493,11 +2480,9 @@ void do_brandish( CHAR_DATA* ch, const char* argument)
          global_objcode = rOBJ_USED;
       extract_obj( staff );
    }
-
-   return;
 }
 
-void do_zap( CHAR_DATA* ch, const char* argument)
+void do_zap( CHAR_DATA* ch, const char* argument )
 {
    char arg[MAX_INPUT_LENGTH];
    CHAR_DATA *victim;
@@ -2583,11 +2568,10 @@ void do_zap( CHAR_DATA* ch, const char* argument)
          global_objcode = rOBJ_USED;
       extract_obj( wand );
    }
-   return;
 }
 
 /* put an item on auction, or see the stats on the current item or bet */
-void do_auction( CHAR_DATA* ch, const char* argument)
+void do_auction( CHAR_DATA* ch, const char* argument )
 {
    OBJ_DATA *obj;
    char arg1[MAX_INPUT_LENGTH];
@@ -2913,7 +2897,7 @@ void do_auction( CHAR_DATA* ch, const char* argument)
    if( arg2[0] == '\0' )
    {
       auction->starting = 0;
-      mudstrlcpy( arg2, "0", MAX_INPUT_LENGTH );
+      strlcpy( arg2, "0", MAX_INPUT_LENGTH );
    }
 
    if( !is_number( arg2 ) )
@@ -3082,13 +3066,17 @@ void obj_fall( OBJ_DATA * obj, bool through )
             for( rch = obj->in_room->first_person; rch; rch = rch->next_in_room, chcnt++ )
                if( number_range( 0, chcnt ) == 0 )
                   vch = rch;
-            act( AT_WHITE, "$p falls on $n!", vch, obj, NULL, TO_ROOM );
-            act( AT_WHITE, "$p falls on you!", vch, obj, NULL, TO_CHAR );
 
-            if( IS_NPC( vch ) && xIS_SET( vch->act, ACT_HARDHAT ) )
-               act( AT_WHITE, "$p bounces harmlessly off your head!", vch, obj, NULL, TO_CHAR );
-            else
-               damage( vch, vch, dam * vch->level, TYPE_UNDEFINED );
+            if( vch )
+            {
+               act( AT_WHITE, "$p falls on $n!", vch, obj, NULL, TO_ROOM );
+               act( AT_WHITE, "$p falls on you!", vch, obj, NULL, TO_CHAR );
+
+               if( IS_NPC( vch ) && xIS_SET( vch->act, ACT_HARDHAT ) )
+                  act( AT_WHITE, "$p bounces harmlessly off your head!", vch, obj, NULL, TO_CHAR );
+               else
+                  damage( vch, vch, dam * vch->level, TYPE_UNDEFINED );
+            }
          }
          /*
           * Damage objects 
@@ -3124,7 +3112,6 @@ void obj_fall( OBJ_DATA * obj, bool through )
       }
       obj_fall( obj, TRUE );
    }
-   return;
 }
 
 /* Scryn, by request of Darkur, 12/04/98 */
@@ -3189,7 +3176,7 @@ OBJ_DATA *recursive_note_find( OBJ_DATA * obj, const char *argument )
    return recursive_note_find( obj->next_content, argument );
 }
 
-void do_findnote( CHAR_DATA* ch, const char* argument)
+void do_findnote( CHAR_DATA* ch, const char* argument )
 {
    OBJ_DATA *obj;
 
@@ -3218,7 +3205,6 @@ void do_findnote( CHAR_DATA* ch, const char* argument)
    }
    else
       send_to_char( "Note not found.\r\n", ch );
-   return;
 }
 
 const char *get_chance_verb( OBJ_DATA * obj )
@@ -3240,7 +3226,7 @@ const char *get_ed_number( OBJ_DATA * obj, int number )
    return NULL;
 }
 
-void do_rolldie( CHAR_DATA* ch, const char* argument)
+void do_rolldie( CHAR_DATA* ch, const char* argument )
 {
    OBJ_DATA *die;
 
@@ -3315,9 +3301,9 @@ void do_rolldie( CHAR_DATA* ch, const char* argument)
       rollsum += current_roll;
 
       if( roll_count > 1 )
-         mudstrlcat( roll_string, ", ", MAX_INPUT_LENGTH );
+         strlcat( roll_string, ", ", MAX_INPUT_LENGTH );
       if( numrolls > 1 && roll_count == numrolls )
-         mudstrlcat( roll_string, "and ", MAX_INPUT_LENGTH );
+         strlcat( roll_string, "and ", MAX_INPUT_LENGTH );
 
       if( die->value[1] == 1 )
       {
@@ -3333,16 +3319,16 @@ void do_rolldie( CHAR_DATA* ch, const char* argument)
       }
       else
          snprintf( current_roll_string, MAX_STRING_LENGTH, "%d", current_roll );
-      mudstrlcat( roll_string, current_roll_string, MAX_INPUT_LENGTH );
+      strlcat( roll_string, current_roll_string, MAX_INPUT_LENGTH );
    }
 
    if( numrolls > 1 && die->value[2] == 1 )
    {
       snprintf( total_string, MAX_INPUT_LENGTH, ", for a total of %d", rollsum );
-      mudstrlcat( roll_string, total_string, MAX_INPUT_LENGTH );
+      strlcat( roll_string, total_string, MAX_INPUT_LENGTH );
    }
 
-   mudstrlcat( roll_string, ".\r\n", MAX_INPUT_LENGTH );
+   strlcat( roll_string, ".\r\n", MAX_INPUT_LENGTH );
 
    snprintf( output_string, MAX_STRING_LENGTH, "You %s%s", verb, roll_string );
    act( AT_GREEN, output_string, ch, NULL, NULL, TO_CHAR );
@@ -3352,7 +3338,5 @@ void do_rolldie( CHAR_DATA* ch, const char* argument)
 
    if( face_seen_table )
       free( face_seen_table );
-   return;
 }
-
 /*dice chance deal throw*/

@@ -447,13 +447,13 @@ static VOID worker_thread( VOID * notused )
 
 // remove last part of file name to get working directory
 
-   mudstrlcpy( directory, fullfilename, MAX_PATH );
+   strlcpy( directory, fullfilename, MAX_PATH );
 
    p = strrchr( directory, '\\' );
    if( p )
       *p = 0;
 
-   mudstrlcat( directory, "\\area", MAX_PATH );
+   strlcat( directory, "\\area", MAX_PATH );
 
 // make sure we are running in the "area" subdirectory
 
@@ -843,8 +843,7 @@ static void CmdDisplayFormat( void )
 
 static char *convert_error( DWORD error )
 {
-
-   char *formattedmsg;
+   char *formattedmsg = NULL;
    static char buff[100];
 
    if( !FormatMessage( FORMAT_MESSAGE_FROM_SYSTEM |

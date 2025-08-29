@@ -18,6 +18,7 @@
 /*Put together by Rennard for Realms of Despair.  Brap on...*/
 
 #include <stdio.h>
+#include <string.h>
 #include "mud.h"
 
 DEITY_DATA *first_deity;
@@ -35,7 +36,6 @@ void free_deity( DEITY_DATA * deity )
    STRFREE( deity->description );
    DISPOSE( deity->filename );
    DISPOSE( deity );
-   return;
 }
 
 void free_deities( void )
@@ -47,7 +47,6 @@ void free_deities( void )
       deity_next = deity->next;
       free_deity( deity );
    }
-   return;
 }
 
 /* Get pointer to deity structure from deity name */
@@ -152,7 +151,6 @@ void save_deity( DEITY_DATA * deity )
       fprintf( fp, "#END\n" );
       FCLOSE( fp );
    }
-   return;
 }
 
 /* Read in actual deity data */
@@ -351,10 +349,9 @@ void load_deity(  )
    }
    FCLOSE( fpList );
    log_string( " Done deities " );
-   return;
 }
 
-void do_setdeity( CHAR_DATA* ch, const char* argument)
+void do_setdeity( CHAR_DATA* ch, const char* argument )
 {
    char arg1[MAX_INPUT_LENGTH];
    char arg2[MAX_INPUT_LENGTH];
@@ -490,7 +487,7 @@ void do_setdeity( CHAR_DATA* ch, const char* argument)
       if( !remove( filename ) )
          send_to_char( "Old deity file deleted.\r\n", ch );
       DISPOSE( deity->filename );
-      deity->filename = str_dup( argument );
+      deity->filename = strdup( argument );
       send_to_char( "Done.\r\n", ch );
       save_deity( deity );
       write_deity_list(  );
@@ -911,10 +908,9 @@ void do_setdeity( CHAR_DATA* ch, const char* argument)
    }
 
    do_setdeity( ch, "" );
-   return;
 }
 
-void do_showdeity( CHAR_DATA* ch, const char* argument)
+void do_showdeity( CHAR_DATA* ch, const char* argument )
 {
    DEITY_DATA *deity;
 
@@ -965,10 +961,9 @@ void do_showdeity( CHAR_DATA* ch, const char* argument)
    ch_printf( ch, "Die_npcfoe: %-6dFlee_npcfoe: %d\r\n", deity->die_npcfoe, deity->flee_npcfoe );
    ch_printf( ch, "\r\nScorpse: %-9dSavatar: %-9dSdeityobj: %-7d"
               "Srecall: %d\r\n", deity->scorpse, deity->savatar, deity->sdeityobj, deity->srecall );
-   return;
 }
 
-void do_makedeity( CHAR_DATA* ch, const char* argument)
+void do_makedeity( CHAR_DATA* ch, const char* argument )
 {
    DEITY_DATA *deity;
 
@@ -989,14 +984,13 @@ void do_makedeity( CHAR_DATA* ch, const char* argument)
    CREATE( deity, DEITY_DATA, 1 );
    LINK( deity, first_deity, last_deity, next, prev );
    deity->name = STRALLOC( argument );
-   deity->filename = str_dup( strlower( argument ) );
+   deity->filename = strdup( strlower( argument ) );
    write_deity_list(  );
    save_deity( deity );
    ch_printf( ch, "%s deity has been created\r\n", argument );
-   return;
 }
 
-void do_devote( CHAR_DATA* ch, const char* argument)
+void do_devote( CHAR_DATA* ch, const char* argument )
 {
    char arg[MAX_INPUT_LENGTH];
    DEITY_DATA *deity;
@@ -1108,10 +1102,9 @@ void do_devote( CHAR_DATA* ch, const char* argument)
    ++ch->pcdata->deity->worshippers;
    save_deity( ch->pcdata->deity );
    save_char_obj( ch );
-   return;
 }
 
-void do_deities( CHAR_DATA* ch, const char* argument)
+void do_deities( CHAR_DATA* ch, const char* argument )
 {
    DEITY_DATA *deity;
    int count = 0;
@@ -1142,10 +1135,9 @@ void do_deities( CHAR_DATA* ch, const char* argument)
 
    pager_printf_color( ch, "&gDeity:        &G%s\r\n", deity->name );
    pager_printf_color( ch, "&gDescription:\r\n&G%s", deity->description );
-   return;
 }
 
-void do_supplicate( CHAR_DATA* ch, const char* argument)
+void do_supplicate( CHAR_DATA* ch, const char* argument )
 {
    char arg[MAX_INPUT_LENGTH];
    char buf[MAX_STRING_LENGTH];
@@ -1197,7 +1189,7 @@ void do_supplicate( CHAR_DATA* ch, const char* argument)
             {
                if( retr )
                   ch->pcdata->favor -= ch->pcdata->deity->scorpse;
-               send_to_char( "So soon?  Have patience...\n\r", ch );
+               send_to_char( "So soon? Have patience...\r\n", ch );
                return;
             }
 
@@ -1446,7 +1438,6 @@ void do_supplicate( CHAR_DATA* ch, const char* argument)
    }
 
    send_to_char( "You cannot supplicate for that.\r\n", ch );
-   return;
 }
 
 /*
@@ -1575,6 +1566,4 @@ void adjust_favor( CHAR_DATA * ch, int field, int mod )
    {
       update_aris( ch );
    }
-
-   return;
 }

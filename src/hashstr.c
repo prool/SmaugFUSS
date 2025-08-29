@@ -6,7 +6,7 @@
  * memory allocated, and will free the memory if all the links are removed. *
  * Make absolutely sure you do not mix use of strdup and free with these    *
  * functions, or nasty stuff will happen!                                   *
- * Most occurances of strdup/str_dup should be replaced with str_alloc, and *
+ * Most occurances of strdup/strdup should be replaced with str_alloc, and *
  * any free/DISPOSE used on the same pointer should be replaced with	    *
  * str_free.  If a function uses strdup for temporary use... it is best if  *
  * it is left as is.  Just don't get usage mixed up between conventions.    *
@@ -18,17 +18,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if !defined(FALSE)
-#define FALSE 0
-#endif
+const bool TRUE = true;
+const bool FALSE = false;
 
-#if !defined(TRUE)
-#define TRUE 1
-#endif
-
-#ifndef __cplusplus
-typedef unsigned char bool;
-#endif
 extern bool mud_down;
 
 #define STR_HASH_SIZE	1024

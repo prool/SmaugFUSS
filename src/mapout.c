@@ -192,10 +192,9 @@ void map_stats( CHAR_DATA * ch, int *rooms, int *rows, int *cols )
    *cols = ( rightmost - leftmost );
    *rows = row;   /* [sic.] */
    *rooms = n;
-   return;
 }
 
-void do_mapout( CHAR_DATA* ch, const char* argument)
+void do_mapout( CHAR_DATA* ch, const char* argument )
 {
    char arg[MAX_INPUT_LENGTH];
    OBJ_DATA *map_obj;   /* an obj made with map as an ed */
@@ -218,6 +217,12 @@ void do_mapout( CHAR_DATA* ch, const char* argument)
       bug( "%s: no descriptor", __func__ );
       return;
    }
+   if( !ch->pcdata->area )
+   {
+      send_to_char( "You have no assigned area.\r\n", ch );
+      return;
+   }
+
    switch ( ch->substate )
    {
       default:
@@ -249,7 +254,6 @@ void do_mapout( CHAR_DATA* ch, const char* argument)
       act( AT_ACTION, "$n glances at an etherial map.", ch, NULL, NULL, TO_ROOM );
       return;
    }
-
 
    if( !str_cmp( arg, "write" ) )
    {
@@ -337,7 +341,6 @@ void do_mapout( CHAR_DATA* ch, const char* argument)
    send_to_char( "mapout clear: clear a written, but not yet created map.\r\n", ch );
    send_to_char( "mapout show: show a written, but not yet created map.\r\n", ch );
    send_to_char( "mapout create: turn a written map into rooms in your assigned room vnum range.\r\n", ch );
-   return;
 }
 
 int add_new_room_to_map( CHAR_DATA * ch, char code )
@@ -395,6 +398,8 @@ int add_new_room_to_map( CHAR_DATA * ch, char code )
             location->sector_type = SECT_LAVA;
          else if( code == 'W' )
             location->sector_type = SECT_SWAMP;
+         else if( code == 'i' )
+            location->sector_type = SECT_ICE;
          else
             location->sector_type = SECT_DUNNO;
          return i;
@@ -499,7 +504,10 @@ void map_to_rooms( CHAR_DATA * ch, MAP_INDEX_DATA * m_index )
       switch ( c )
       {
          case '\n':
+            row++;
+            col = 0;
             break;
+
          case '\r':
             col = 0;
             row++;

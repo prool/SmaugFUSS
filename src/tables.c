@@ -281,6 +281,7 @@ void load_classes(  )
          ++MAX_PC_CLASS;
    }
    FCLOSE( fpList );
+
    for( i = 0; i < MAX_CLASS; ++i )
    {
       if( class_table[i] == NULL )
@@ -289,7 +290,6 @@ void load_classes(  )
          create_new_class( i, "" );
       }
    }
-   return;
 }
 
 void write_class_file( int cl )
@@ -305,6 +305,7 @@ void write_class_file( int cl )
       bug( "%s: Cannot open: %s for writing", __func__, filename );
       return;
    }
+
    fprintf( fpout, "Name        %s~\n", Class->who_name );
    fprintf( fpout, "Class       %d\n", cl );
    fprintf( fpout, "AttrPrime   %d\n", Class->attr_prime );
@@ -322,6 +323,7 @@ void write_class_file( int cl )
    fprintf( fpout, "Affected    %s\n", print_bitvector( &Class->affected ) );
    fprintf( fpout, "Resist	 %d\n", Class->resist );
    fprintf( fpout, "Suscept	 %d\n", Class->suscept );
+
    for( x = 0; x < num_skills; ++x )
    {
       if( !skill_table[x]->name || skill_table[x]->name[0] == '\0' )
@@ -329,8 +331,10 @@ void write_class_file( int cl )
       if( ( y = skill_table[x]->skill_level[cl] ) < LEVEL_IMMORTAL )
          fprintf( fpout, "Skill '%s' %d %d\n", skill_table[x]->name, y, skill_table[x]->skill_adept[cl] );
    }
+
    for( x = 0; x <= MAX_LEVEL; ++x )
       fprintf( fpout, "Title\n%s~\n%s~\n", title_table[cl][x][0], title_table[cl][x][1] );
+
    fprintf( fpout, "End\n" );
    FCLOSE( fpout );
 }
@@ -370,16 +374,16 @@ void load_races(  )
       else
          ++MAX_PC_RACE;
    }
+
    for( i = 0; i < MAX_RACE; ++i )
    {
       if( race_table[i] == NULL )
       {
          CREATE( race_table[i], struct race_type, 1 );
-         snprintf( race_table[i]->race_name, 16, "%s", "unused" );
+         race_table[i]->race_name = STRALLOC( "unused" );
       }
    }
    FCLOSE( fpList );
-   return;
 }
 
 void write_race_file( int ra )
@@ -433,6 +437,7 @@ void write_race_file( int ra )
    fprintf( fpout, "Mana_Regen  %d\n", race->mana_regen );
    fprintf( fpout, "HP_Regen    %d\n", race->hp_regen );
    fprintf( fpout, "Race_Recall %d\n", race->race_recall );
+
    for( i = 0; i < MAX_WHERE_NAME; ++i )
       fprintf( fpout, "WhereName  %s~\n", race->where_name[i] );
 
@@ -451,7 +456,6 @@ bool load_race_file( const char *fname )
 {
    char buf[MAX_STRING_LENGTH];
    const char *word;
-   const char *race_name = NULL;
    bool fMatch;
    struct race_type *race;
    int ra = -1;
@@ -467,7 +471,7 @@ bool load_race_file( const char *fname )
 
    CREATE( race, struct race_type, 1 );
    for( i = 0; i < MAX_WHERE_NAME; ++i )
-      race->where_name[i] = str_dup( where_name[i] );
+      race->where_name[i] = strdup( where_name[i] );
 
    for( ;; )
    {
@@ -507,14 +511,12 @@ bool load_race_file( const char *fname )
                {
                   bug( "%s: Race (%s) bad/not found (%d)", __func__,
                        race->race_name ? race->race_name : "name not found", ra );
-                  STRFREE( race_name );
                   for( i = 0; i < MAX_WHERE_NAME; ++i )
                      DISPOSE( race->where_name[i] );
                   DISPOSE( race );
                   return FALSE;
                }
                race_table[ra] = race;
-               STRFREE( race_name );
                return TRUE;
             }
 
@@ -545,7 +547,7 @@ bool load_race_file( const char *fname )
             break;
 
          case 'N':
-            KEY( "Name", race_name, fread_string( fp ) );
+            KEY( "Name", race->race_name, fread_string( fp ) );
             break;
 
          case 'R':
@@ -616,9 +618,6 @@ bool load_race_file( const char *fname )
             break;
       }
 
-      if( race_name != NULL )
-         snprintf( race->race_name, 16, "%-.15s", race_name );
-
       if( !fMatch )
       {
          bug( "%s: no match: %s", __func__, word );
@@ -641,6 +640,7 @@ int skill_comp( SKILLTYPE ** sk1, SKILLTYPE ** sk2 )
       return -1;
    if( !skill1 && !skill2 )
       return 0;
+
    // Sort without regard to case.
    return strcasecmp( skill1->name, skill2->name );
 }
@@ -703,7 +703,7 @@ void remap_slot_numbers(  )
 
    log_string( "Remapping slots to sns" );
 
-   for( sn = 0; sn <= num_skills; ++sn )
+   for( sn = 0; sn < num_skills; ++sn )
    {
       if( ( skill = skill_table[sn] ) != NULL )
       {
@@ -715,7 +715,7 @@ void remap_slot_numbers(  )
             {
                snprintf( tmp, 32, "%d", slot_lookup( atoi( aff->modifier ) ) );
                DISPOSE( aff->modifier );
-               aff->modifier = str_dup( tmp );
+               aff->modifier = strdup( tmp );
             }
       }
    }
@@ -804,6 +804,7 @@ void fwrite_skill( FILE * fpout, SKILLTYPE * skill )
       fprintf( fpout, "Components   %s~\n", skill->components );
    if( skill->teachers && skill->teachers[0] != '\0' )
       fprintf( fpout, "Teachers     %s~\n", skill->teachers );
+
    for( aff = skill->first_affect; aff; aff = aff->next )
    {
       fprintf( fpout, "Affect       '%s' %d ", aff->duration, aff->location );
@@ -1048,9 +1049,9 @@ SKILLTYPE *fread_skill( FILE * fp )
                SMAUG_AFF *aff;
 
                CREATE( aff, SMAUG_AFF, 1 );
-               aff->duration = str_dup( fread_word( fp ) );
+               aff->duration = strdup( fread_word( fp ) );
                aff->location = fread_number( fp );
-               aff->modifier = str_dup( fread_word( fp ) );
+               aff->modifier = strdup( fread_word( fp ) );
                aff->bitvector = fread_number( fp );
 
                if( !got_info )
@@ -1095,13 +1096,13 @@ SKILLTYPE *fread_skill( FILE * fp )
                {
                   skill->skill_fun = dofun;
                   skill->spell_fun = NULL;
-                  skill->skill_fun_name = str_dup( w );
+                  skill->skill_fun_name = strdup( w );
                }
                else if( str_prefix( "do_", w ) && ( spellfun = spell_function( w ) ) != spell_notfound )
                {
                   skill->spell_fun = spellfun;
                   skill->skill_fun = NULL;
-                  skill->spell_fun_name = str_dup( w );
+                  skill->spell_fun_name = strdup( w );
                }
                else
                {
@@ -1555,7 +1556,7 @@ void fread_command( FILE * fp )
             break;
 
          case 'C':
-            KEY( "Code", command->fun_name, str_dup( fread_word( fp ) ) );
+            KEY( "Code", command->fun_name, strdup( fread_word( fp ) ) );
             break;
 
          case 'E':
@@ -1740,6 +1741,7 @@ void free_tongues( void )
          DISPOSE( lcnv->lnew );
          DISPOSE( lcnv );
       }
+
       for( lcnv = lang->first_cnv; lcnv; lcnv = lcnv_next )
       {
          lcnv_next = lcnv->next;
@@ -1748,12 +1750,12 @@ void free_tongues( void )
          DISPOSE( lcnv->lnew );
          DISPOSE( lcnv );
       }
+
       STRFREE( lang->name );
       STRFREE( lang->alphabet );
       UNLINK( lang, first_lang, last_lang, next, prev );
       DISPOSE( lang );
    }
-   return;
 }
 
 /*
@@ -1772,9 +1774,9 @@ void fread_cnv( FILE * fp, LCNV_DATA ** first_cnv, LCNV_DATA ** last_cnv )
       ungetc( letter, fp );
       CREATE( cnv, LCNV_DATA, 1 );
 
-      cnv->old = str_dup( fread_word( fp ) );
+      cnv->old = strdup( fread_word( fp ) );
       cnv->olen = strlen( cnv->old );
-      cnv->lnew = str_dup( fread_word( fp ) );
+      cnv->lnew = strdup( fread_word( fp ) );
       cnv->nlen = strlen( cnv->lnew );
       fread_to_eol( fp );
       LINK( cnv, *first_cnv, *last_cnv, next, prev );
@@ -1793,6 +1795,7 @@ void load_tongues(  )
       perror( "Load_tongues" );
       return;
    }
+
    for( ;; )
    {
       letter = fread_letter( fp );
@@ -1808,20 +1811,24 @@ void load_tongues(  )
          bug( "%s: Letter '%c' not #.", __func__, letter );
          exit( 0 );
       }
+
       word = fread_word( fp );
       if( !str_cmp( word, "end" ) )
          break;
+
       fread_to_eol( fp );
+
       CREATE( lng, LANG_DATA, 1 );
       lng->name = STRALLOC( word );
       fread_cnv( fp, &lng->first_precnv, &lng->last_precnv );
       lng->alphabet = fread_string( fp );
       fread_cnv( fp, &lng->first_cnv, &lng->last_cnv );
+
       fread_to_eol( fp );
+
       LINK( lng, first_lang, last_lang, next, prev );
    }
    FCLOSE( fp );
-   return;
 }
 
 void fwrite_langs( void )
@@ -1840,6 +1847,7 @@ void fwrite_langs( void )
       fprintf( fp, "#%s\n", lng->name );
       for( cnv = lng->first_precnv; cnv; cnv = cnv->next )
          fprintf( fp, "'%s' '%s'\n", cnv->old, cnv->lnew );
+
       fprintf( fp, "~\n%s~\n", lng->alphabet );
       for( cnv = lng->first_cnv; cnv; cnv = cnv->next )
          fprintf( fp, "'%s' '%s'\n", cnv->old, cnv->lnew );
@@ -1847,5 +1855,4 @@ void fwrite_langs( void )
    }
    fprintf( fp, "#end\n\n" );
    FCLOSE( fp );
-   return;
 }

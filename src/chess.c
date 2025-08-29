@@ -20,7 +20,6 @@
 
 #include "mud.h"
 #include "chess.h"
-#include "imc.h"
 
 #define WHITE_BACKGROUND ""
 #define BLACK_BACKGROUND ""
@@ -65,35 +64,35 @@ static char *print_big_board( CHAR_DATA * ch, GAME_BOARD_DATA * board )
    char s1[16], s2[16];
    int x, y;
 
-   mudstrlcpy( s1, "&Y&W", 16 );
-   mudstrlcpy( s2, "&z&z", 16 );
+   strlcpy( s1, "&Y&W", 16 );
+   strlcpy( s2, "&z&z", 16 );
 
    snprintf( retbuf, MAX_STRING_LENGTH * 2, WHITE_FOREGROUND "\n\r&g     1      2      3      4      5      6      7      8\n\r" );
 
    for( x = 0; x < 8; x++ )
    {
-      mudstrlcat( retbuf, "  ", MAX_STRING_LENGTH * 2 );
+      strlcat( retbuf, "  ", MAX_STRING_LENGTH * 2 );
       for( y = 0; y < 8; y++ )
       {
          snprintf( buf, MAX_STRING_LENGTH, "%s%s",
                   x % 2 == 0 ? ( y % 2 == 0 ? BLACK_BACKGROUND : WHITE_BACKGROUND ) :
                   ( y % 2 == 0 ? WHITE_BACKGROUND : BLACK_BACKGROUND ), big_pieces[board->board[x][y]][0] );
          snprintf( buf2, MAX_STRING_LENGTH, buf, IS_WHITE( board->board[x][y] ) ? s1 : s2 );
-         mudstrlcat( retbuf, buf2, MAX_STRING_LENGTH * 2 );
+         strlcat( retbuf, buf2, MAX_STRING_LENGTH * 2 );
       }
-      mudstrlcat( retbuf, BLACK_BACKGROUND "\n\r", MAX_STRING_LENGTH * 2 );
+      strlcat( retbuf, BLACK_BACKGROUND "\n\r", MAX_STRING_LENGTH * 2 );
 
       snprintf( buf, MAX_STRING_LENGTH, WHITE_FOREGROUND "&g%c ", 'A' + x );
-      mudstrlcat( retbuf, buf, MAX_STRING_LENGTH * 2 );
+      strlcat( retbuf, buf, MAX_STRING_LENGTH * 2 );
       for( y = 0; y < 8; y++ )
       {
          snprintf( buf, MAX_STRING_LENGTH, "%s%s",
                   x % 2 == 0 ? ( y % 2 == 0 ? BLACK_BACKGROUND : WHITE_BACKGROUND ) :
                   ( y % 2 == 0 ? WHITE_BACKGROUND : BLACK_BACKGROUND ), big_pieces[board->board[x][y]][1] );
          snprintf( buf2, MAX_STRING_LENGTH, buf, IS_WHITE( board->board[x][y] ) ? s1 : s2 );
-         mudstrlcat( retbuf, buf2, MAX_STRING_LENGTH * 2 );
+         strlcat( retbuf, buf2, MAX_STRING_LENGTH * 2 );
       }
-      mudstrlcat( retbuf, BLACK_BACKGROUND "\n\r", MAX_STRING_LENGTH * 2 );
+      strlcat( retbuf, BLACK_BACKGROUND "\n\r", MAX_STRING_LENGTH * 2 );
    }
 
    return ( retbuf );
@@ -102,9 +101,11 @@ static char *print_big_board( CHAR_DATA * ch, GAME_BOARD_DATA * board )
 static void init_board( GAME_BOARD_DATA * board )
 {
    int x, y;
+
    for( x = 0; x < 8; x++ )
       for( y = 0; y < 8; y++ )
          board->board[x][y] = 0;
+
    board->board[0][0] = WHITE_ROOK;
    board->board[0][1] = WHITE_KNIGHT;
    board->board[0][2] = WHITE_BISHOP;
@@ -113,10 +114,12 @@ static void init_board( GAME_BOARD_DATA * board )
    board->board[0][5] = WHITE_BISHOP;
    board->board[0][6] = WHITE_KNIGHT;
    board->board[0][7] = WHITE_ROOK;
+
    for( x = 0; x < 8; x++ )
       board->board[1][x] = WHITE_PAWN;
    for( x = 0; x < 8; x++ )
       board->board[6][x] = BLACK_PAWN;
+
    board->board[7][0] = BLACK_ROOK;
    board->board[7][1] = BLACK_KNIGHT;
    board->board[7][2] = BLACK_BISHOP;
@@ -143,8 +146,10 @@ static bool find_piece( GAME_BOARD_DATA * board, int *x, int *y, int piece )
       if( board->board[a][b] == piece )
          break;
    }
+
    *x = a;
    *y = b;
+
    if( board->board[a][b] == piece )
       return TRUE;
    return FALSE;
@@ -183,6 +188,7 @@ static bool king_in_check( GAME_BOARD_DATA * board, int piece )
        ( ( board->board[x - 2][y - 1] == BLACK_KNIGHT && IS_WHITE( board->board[x][y] ) ) ||
          ( board->board[x - 2][y - 1] == WHITE_KNIGHT && IS_BLACK( board->board[x][y] ) ) ) )
       return TRUE;
+
    if( x - 2 >= 0 && y + 1 < 8 &&
        ( ( board->board[x - 2][y + 1] == BLACK_KNIGHT && IS_WHITE( board->board[x][y] ) ) ||
          ( board->board[x - 2][y + 1] == WHITE_KNIGHT && IS_BLACK( board->board[x][y] ) ) ) )
@@ -192,6 +198,7 @@ static bool king_in_check( GAME_BOARD_DATA * board, int piece )
        ( ( board->board[x - 1][y - 2] == BLACK_KNIGHT && IS_WHITE( board->board[x][y] ) ) ||
          ( board->board[x - 1][y - 2] == WHITE_KNIGHT && IS_BLACK( board->board[x][y] ) ) ) )
       return TRUE;
+
    if( x - 1 >= 0 && y + 2 < 8 &&
        ( ( board->board[x - 1][y + 2] == BLACK_KNIGHT && IS_WHITE( board->board[x][y] ) ) ||
          ( board->board[x - 1][y + 2] == WHITE_KNIGHT && IS_BLACK( board->board[x][y] ) ) ) )
@@ -201,6 +208,7 @@ static bool king_in_check( GAME_BOARD_DATA * board, int piece )
        ( ( board->board[x + 1][y - 2] == BLACK_KNIGHT && IS_WHITE( board->board[x][y] ) ) ||
          ( board->board[x + 1][y - 2] == WHITE_KNIGHT && IS_BLACK( board->board[x][y] ) ) ) )
       return TRUE;
+
    if( x + 1 < 8 && y + 2 < 8 &&
        ( ( board->board[x + 1][y + 2] == BLACK_KNIGHT && IS_WHITE( board->board[x][y] ) ) ||
          ( board->board[x + 1][y + 2] == WHITE_KNIGHT && IS_BLACK( board->board[x][y] ) ) ) )
@@ -210,6 +218,7 @@ static bool king_in_check( GAME_BOARD_DATA * board, int piece )
        ( ( board->board[x + 2][y - 1] == BLACK_KNIGHT && IS_WHITE( board->board[x][y] ) ) ||
          ( board->board[x + 2][y - 1] == WHITE_KNIGHT && IS_BLACK( board->board[x][y] ) ) ) )
       return TRUE;
+
    if( x + 2 < 8 && y + 1 < 8 &&
        ( ( board->board[x + 2][y + 1] == BLACK_KNIGHT && IS_WHITE( board->board[x][y] ) ) ||
          ( board->board[x + 2][y + 1] == WHITE_KNIGHT && IS_BLACK( board->board[x][y] ) ) ) )
@@ -228,6 +237,7 @@ static bool king_in_check( GAME_BOARD_DATA * board, int piece )
             return TRUE;
          break;
       }
+
    for( l = x - 1; l >= 0; l-- )
       if( board->board[l][y] != NO_PIECE )
       {
@@ -238,6 +248,7 @@ static bool king_in_check( GAME_BOARD_DATA * board, int piece )
             return TRUE;
          break;
       }
+
    for( m = y + 1; m < 8; m++ )
       if( board->board[x][m] != NO_PIECE )
       {
@@ -248,6 +259,7 @@ static bool king_in_check( GAME_BOARD_DATA * board, int piece )
             return TRUE;
          break;
       }
+
    for( m = y - 1; m >= 0; m-- )
       if( board->board[x][m] != NO_PIECE )
       {
@@ -258,6 +270,7 @@ static bool king_in_check( GAME_BOARD_DATA * board, int piece )
             return TRUE;
          break;
       }
+
    /*
     * diagonal long distance 
     */
@@ -271,6 +284,7 @@ static bool king_in_check( GAME_BOARD_DATA * board, int piece )
             return TRUE;
          break;
       }
+
    for( l = x - 1, m = y + 1; l >= 0 && m < 8; l--, m++ )
       if( board->board[l][m] != NO_PIECE )
       {
@@ -281,6 +295,7 @@ static bool king_in_check( GAME_BOARD_DATA * board, int piece )
             return TRUE;
          break;
       }
+
    for( l = x + 1, m = y - 1; l < 8 && m >= 0; l++, m-- )
       if( board->board[l][m] != NO_PIECE )
       {
@@ -291,6 +306,7 @@ static bool king_in_check( GAME_BOARD_DATA * board, int piece )
             return TRUE;
          break;
       }
+
    for( l = x - 1, m = y - 1; l >= 0 && m >= 0; l--, m-- )
       if( board->board[l][m] != NO_PIECE )
       {
@@ -322,6 +338,7 @@ static bool king_in_checkmate( GAME_BOARD_DATA * board, int piece )
 
    dx = x + 1;
    dy = y + 1;
+
    if( dx < 8 && dy < 8 && board->board[dx][dy] == NO_PIECE )
    {
       sk = board->board[dx][dy] = board->board[x][y];
@@ -335,8 +352,10 @@ static bool king_in_checkmate( GAME_BOARD_DATA * board, int piece )
       board->board[x][y] = sk;
       board->board[dx][dy] = NO_PIECE;
    }
+
    dx = x - 1;
    dy = y + 1;
+
    if( dx >= 0 && dy < 8 && board->board[dx][dy] == NO_PIECE )
    {
       sk = board->board[dx][dy] = board->board[x][y];
@@ -350,8 +369,10 @@ static bool king_in_checkmate( GAME_BOARD_DATA * board, int piece )
       board->board[x][y] = sk;
       board->board[dx][dy] = NO_PIECE;
    }
+
    dx = x + 1;
    dy = y - 1;
+
    if( dx < 8 && dy >= 0 && board->board[dx][dy] == NO_PIECE )
    {
       sk = board->board[dx][dy] = board->board[x][y];
@@ -365,8 +386,10 @@ static bool king_in_checkmate( GAME_BOARD_DATA * board, int piece )
       board->board[x][y] = sk;
       board->board[dx][dy] = NO_PIECE;
    }
+
    dx = x - 1;
    dy = y - 1;
+
    if( dx >= 0 && dy >= 0 && board->board[dx][dy] == NO_PIECE )
    {
       sk = board->board[dx][dy] = board->board[x][y];
@@ -380,8 +403,10 @@ static bool king_in_checkmate( GAME_BOARD_DATA * board, int piece )
       board->board[x][y] = sk;
       board->board[dx][dy] = NO_PIECE;
    }
+
    dx = x;
    dy = y + 1;
+
    if( dy < 8 && board->board[dx][dy] == NO_PIECE )
    {
       sk = board->board[dx][dy] = board->board[x][y];
@@ -395,8 +420,10 @@ static bool king_in_checkmate( GAME_BOARD_DATA * board, int piece )
       board->board[x][y] = sk;
       board->board[dx][dy] = NO_PIECE;
    }
+
    dx = x;
    dy = y - 1;
+
    if( dy >= 0 && board->board[dx][dy] == NO_PIECE )
    {
       sk = board->board[dx][dy] = board->board[x][y];
@@ -410,8 +437,10 @@ static bool king_in_checkmate( GAME_BOARD_DATA * board, int piece )
       board->board[x][y] = sk;
       board->board[dx][dy] = NO_PIECE;
    }
+
    dx = x + 1;
    dy = y;
+
    if( dx < 8 && board->board[dx][dy] == NO_PIECE )
    {
       sk = board->board[dx][dy] = board->board[x][y];
@@ -425,8 +454,10 @@ static bool king_in_checkmate( GAME_BOARD_DATA * board, int piece )
       board->board[x][y] = sk;
       board->board[dx][dy] = NO_PIECE;
    }
+
    dx = x - 1;
    dy = y;
+
    if( dx >= 0 && board->board[dx][dy] == NO_PIECE )
    {
       sk = board->board[dx][dy] = board->board[x][y];
@@ -468,6 +499,7 @@ static int is_valid_move( CHAR_DATA * ch, GAME_BOARD_DATA * board, int x, int y,
 
    if( IS_WHITE( board->board[x][y] ) && !str_cmp( board->player1, ch->name ) )
       return MOVE_WRONGCOLOR;
+
    if( IS_BLACK( board->board[x][y] ) && ( !str_cmp( board->player2, ch->name ) || !ch ) )
       return MOVE_WRONGCOLOR;
 
@@ -690,183 +722,14 @@ static int is_valid_move( CHAR_DATA * ch, GAME_BOARD_DATA * board, int x, int y,
 
 #undef SAME_COLOR
 
-#ifdef IMC
-void imc_send_chess( const char *from, const char *to, const char *argument )
-{
-   IMC_PACKET *p;
-
-   if( this_imcmud->state < IMC_ONLINE )
-      return;
-
-   p = imc_newpacket( from, "chess", to );
-   imc_addtopacket( p, "text=%s", argument );
-   imc_write_packet( p );
-}
-
-PFUN( imc_recv_chess )
-{
-   CHAR_DATA *victim;
-   char txt[LGST], buf[LGST];
-
-   imc_getData( txt, "text", packet );
-
-   /*
-    * Chess packets must have a specific destination 
-    */
-   if( !str_cmp( q->to, "*" ) )
-      return;
-
-   if( !( victim = imc_find_user( imc_nameof( q->to ) ) ) )
-   {
-      if( !str_cmp( txt, "stop" ) )
-         return;
-
-      snprintf( buf, LGST, "%s is not here.", imc_nameof( q->to ) );
-      imc_send_tell( "*", q->from, buf, 1 );
-      return;
-   }
-
-   if( !victim->pcdata->game_board )
-   {
-      if( !str_cmp( txt, "stop" ) )
-         return;
-
-      snprintf( buf, LGST, "%s is not ready to be joined in a game.", imc_nameof( q->to ) );
-      imc_send_tell( "*", q->from, buf, 1 );
-      imc_send_chess( victim->pcdata->game_board->player1 ? victim->pcdata->game_board->player1 : NULL, q->from, "stop" );
-      return;
-   }
-
-   if( !str_cmp( txt, "start" ) )
-   {
-      if( victim->pcdata->game_board->player2 != NULL )
-      {
-         snprintf( buf, LGST, "%s is already playing a game.", imc_nameof( q->to ) );
-         imc_send_tell( "*", q->from, buf, 1 );
-         imc_send_chess( victim->pcdata->game_board->player1 ? victim->pcdata->game_board->player1 : NULL, q->from, "stop" );
-         return;
-      }
-      victim->pcdata->game_board->player2 = str_dup( q->from );
-      victim->pcdata->game_board->turn = 0;
-      victim->pcdata->game_board->type = TYPE_IMC;
-      ch_printf( victim, "%s has joined your game.\r\n", q->from );
-      imc_send_chess( victim->name, q->from, "accepted" );
-      return;
-   }
-
-   if( !str_cmp( txt, "accepted" ) )
-   {
-      if( !victim->pcdata->game_board ||
-          victim->pcdata->game_board->player2 == NULL ||
-          victim->pcdata->game_board->type != TYPE_IMC || str_cmp( victim->pcdata->game_board->player2, q->from ) )
-      {
-         imc_send_chess( victim->pcdata->game_board->player1 ? victim->pcdata->game_board->player1 : NULL, q->from, "stop" );
-         return;
-      }
-      ch_printf( victim, "You have joined %s in a game.\r\n", q->from );
-      if( victim->pcdata->game_board->player2 )
-         DISPOSE( victim->pcdata->game_board->player2 );
-      victim->pcdata->game_board->player2 = str_dup( q->from );
-      victim->pcdata->game_board->turn = 1;
-      return;
-   }
-
-   if( !str_cmp( txt, "stop" ) )
-   {
-      ch_printf( victim, "%s has stopped the game.\r\n", q->from );
-      free_game( victim->pcdata->game_board );
-      return;
-   }
-
-   if( !str_cmp( txt, "invalidmove" ) )
-   {
-      send_to_char( "You have issued an invalid move according to the other mud.\r\n", victim );
-      interpret( victim, "chess stop" );
-      return;
-   }
-
-   if( !str_cmp( txt, "moveok" ) )
-   {
-      send_to_char( "The other mud has accepted your move.\r\n", victim );
-      return;
-   }
-
-   if( !str_prefix( "move", txt ) )
-   {
-      char a, b;
-      int x, y, dx, dy, ret;
-
-      a = b = ' ';
-      x = y = dx = dy = -1;
-
-      if( sscanf( txt, "move %c%d %c%d", &a, &y, &b, &dy ) != 4 ||
-          a < '0' || a > '7' || b < '0' || b > '7' || y < 0 || y > 7 || dy < 0 || dy > 7 )
-      {
-         imc_send_chess( victim->pcdata->game_board->player1 ? victim->pcdata->game_board->player1 : NULL, q->from,
-                         "invalidmove" );
-         return;
-      }
-
-      x = a - '0';
-      dx = b - '0';
-      x = ( 7 - x );
-      y = ( 7 - y );
-      dx = ( 7 - dx );
-      dy = ( 7 - dy );
-      log_printf( "%d, %d -> %d, %d", x, y, dx, dy );
-      ret = is_valid_move( NULL, victim->pcdata->game_board, x, y, dx, dy );
-      if( ret == MOVE_OK || ret == MOVE_TAKEN )
-      {
-         GAME_BOARD_DATA *board;
-         int piece, destpiece;
-
-         board = victim->pcdata->game_board;
-         piece = board->board[x][y];
-         destpiece = board->board[dx][dy];
-         board->board[dx][dy] = piece;
-         board->board[x][y] = NO_PIECE;
-
-         if( king_in_check( board, IS_WHITE( board->board[dx][dy] ) ? WHITE_KING : BLACK_KING ) &&
-             ( board->board[dx][dy] != WHITE_KING && board->board[dx][dy] != BLACK_KING ) )
-         {
-            board->board[dx][dy] = destpiece;
-            board->board[x][y] = piece;
-         }
-         else
-         {
-            board->turn++;
-            imc_send_chess( board->player1 ? board->player1 : NULL, q->from, "moveok" );
-            return;
-         }
-      }
-      imc_send_chess( victim->pcdata->game_board->player1 ? victim->pcdata->game_board->player1 : NULL, q->from,
-                      "invalidmove" );
-      return;
-   }
-
-   log_printf( "Unknown chess command from: %s, %s", q->from, txt );
-}
-#endif
-
 void init_chess( void )
 {
-#ifdef IMC
-   imc_register_packet_handler( "chess", imc_recv_chess );
-#endif
 }
 
 void free_game( GAME_BOARD_DATA * board )
 {
    if( !board )
       return;
-
-#ifdef IMC
-   if( board->type == TYPE_IMC )
-   {
-      imc_send_chess( board->player1 ? board->player1 : NULL, board->player2, "stop" );
-      STRFREE( board->player2 );
-   }
-#endif
 
    if( board->player1 )
    {
@@ -890,7 +753,7 @@ void free_game( GAME_BOARD_DATA * board )
    DISPOSE( board );
 }
 
-void do_chess( CHAR_DATA* ch, const char* argument)
+void do_chess( CHAR_DATA* ch, const char* argument )
 {
    char arg[MAX_INPUT_LENGTH];
 
@@ -938,41 +801,6 @@ void do_chess( CHAR_DATA* ch, const char* argument)
          send_to_char( "Join whom in a chess match?\r\n", ch );
          return;
       }
-
-#ifdef IMC
-      if( strstr( arg2, "@" ) )
-      {
-         if( !str_cmp( imc_mudof( arg2 ), this_imcmud->localname ) )
-         {
-            send_to_char( "You cannot join IMC chess on the local mud!\r\n", ch );
-            return;
-         }
-
-         if( !str_cmp( imc_mudof( arg2 ), "*" ) )
-         {
-            send_to_char( "* is not a valid mud name.\r\n", ch );
-            return;
-         }
-
-         if( !str_cmp( imc_nameof( arg2 ), "*" ) )
-         {
-            send_to_char( "* is not a valid player name.\r\n", ch );
-            return;
-         }
-
-         send_to_char( "Attempting to initiate IMC chess game...\r\n", ch );
-
-         CREATE( board, GAME_BOARD_DATA, 1 );
-         init_board( board );
-         board->type = TYPE_IMC;
-         board->player1 = QUICKLINK( ch->name );
-         board->player2 = STRALLOC( arg2 );
-         board->turn = -1;
-         ch->pcdata->game_board = board;
-         imc_send_chess( ch->name, arg2, "start" );
-         return;
-      }
-#endif
 
       if( !( vch = get_char_world( ch, arg2 ) ) )
       {
@@ -1164,13 +992,6 @@ void do_chess( CHAR_DATA* ch, const char* argument)
          else
          {
             ++board->turn;
-#ifdef IMC
-            if( ch->pcdata->game_board->type == TYPE_IMC )
-            {
-               snprintf( arg, MAX_INPUT_LENGTH, "move %d%d %d%d", x, y, dx, dy );
-               imc_send_chess( ch->pcdata->game_board->player1, ch->pcdata->game_board->player2, arg );
-            }
-#endif
          }
       }
 
@@ -1178,35 +999,21 @@ void do_chess( CHAR_DATA* ch, const char* argument)
       {
          opp = get_char_world( ch, ch->pcdata->game_board->player2 );
          if( !opp )
-            mudstrlcpy( opp_name, ch->pcdata->game_board->player2, MAX_INPUT_LENGTH );
+            strlcpy( opp_name, ch->pcdata->game_board->player2, MAX_INPUT_LENGTH );
       }
       else
       {
          opp = get_char_world( ch, ch->pcdata->game_board->player1 );
          if( !opp )
-            mudstrlcpy( opp_name, ch->pcdata->game_board->player1, MAX_INPUT_LENGTH );
+            strlcpy( opp_name, ch->pcdata->game_board->player1, MAX_INPUT_LENGTH );
       }
 
-#ifdef IMC
-#define SEND_TO_OPP(arg,opp) \
-      if( opp ) \
-      { \
-         if( ch->pcdata->game_board->type == TYPE_LOCAL ) \
-            ch_printf( (opp), "%s\r\n", (arg) ); \
-      } \
-      else \
-      { \
-         if( ch->pcdata->game_board->type == TYPE_IMC ) \
-            imc_send_tell( ch->name, opp_name, (arg), 1 ); \
-      }
-#else
 #define SEND_TO_OPP(arg,opp) \
       if( opp ) \
       { \
          if( ch->pcdata->game_board->type == TYPE_LOCAL ) \
             ch_printf( (opp), "%s\r\n", (arg) ); \
       }
-#endif
 
       switch ( ret )
       {

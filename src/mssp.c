@@ -340,6 +340,7 @@ void show_mssp( CHAR_DATA * ch )
    ch_printf( ch, "&zLocation          &W%s\r\n", mssp_info->location );
    ch_printf( ch, "&zWebsite           &W%s\r\n", mssp_info->website );
    ch_printf( ch, "&zFamily            &W%s\r\n", mssp_info->family );
+   ch_printf( ch, "&zCodebase          &W%s %s\r\n", CODENAME, CODEVERSION );
    ch_printf( ch, "&zGenre             &W%s\r\n", mssp_info->genre );
    ch_printf( ch, "&zGamePlay          &W%s\r\n", mssp_info->gamePlay );
    ch_printf( ch, "&zGameSystem        &W%s\r\n", mssp_info->gameSystem );
@@ -437,7 +438,7 @@ void do_setmssp( CHAR_DATA *ch, const char* argument )
    if( strptr != NULL )
    {
       DISPOSE( *strptr );
-      *strptr = str_dup( argument );
+      *strptr = strdup( argument );
       ch_printf( ch, "MSSP value, %s has been changed to: %s\r\n", arg1, argument );
       save_mssp_info(  );
       return;
@@ -542,12 +543,12 @@ void do_setmssp( CHAR_DATA *ch, const char* argument )
       if( !str_cmp( arg1, "multiplaying" ) )
       {
          DISPOSE( mssp_info->multiplaying );
-         mssp_info->multiplaying = str_dup( argument );
+         mssp_info->multiplaying = strdup( argument );
       }
       else
       {
          DISPOSE( mssp_info->playerKilling );
-         mssp_info->playerKilling = str_dup( argument );
+         mssp_info->playerKilling = strdup( argument );
       }
       ch_printf( ch, "MSSP value, %s has been changed to: %s\r\n", arg1, argument );
       save_mssp_info(  );
@@ -563,12 +564,12 @@ void do_setmssp( CHAR_DATA *ch, const char* argument )
       if( !str_cmp( arg1, "training_system" ) )
       {
          DISPOSE( mssp_info->trainingSystem );
-         mssp_info->trainingSystem = str_dup( argument );
+         mssp_info->trainingSystem = strdup( argument );
       }
       else
       {
          DISPOSE( mssp_info->equipmentSystem );
-         mssp_info->equipmentSystem = str_dup( argument );
+         mssp_info->equipmentSystem = strdup( argument );
       }
       ch_printf( ch, "MSSP value, %s has been changed to: %s\r\n", arg1, argument );
       save_mssp_info(  );
@@ -582,7 +583,7 @@ void do_setmssp( CHAR_DATA *ch, const char* argument )
          return;
       }
       DISPOSE( mssp_info->questSystem );
-      mssp_info->questSystem = str_dup( argument );
+      mssp_info->questSystem = strdup( argument );
       ch_printf( ch, "MSSP value, %s has been changed to: %s\r\n", arg1, argument );
       save_mssp_info(  );
       return;
@@ -595,7 +596,7 @@ void do_setmssp( CHAR_DATA *ch, const char* argument )
          return;
       }
       DISPOSE( mssp_info->roleplaying );
-      mssp_info->roleplaying = str_dup( argument );
+      mssp_info->roleplaying = strdup( argument );
       ch_printf( ch, "MSSP value, %s has been changed to: %s\r\n", arg1, argument );
       save_mssp_info(  );
       return;
@@ -608,7 +609,7 @@ void do_setmssp( CHAR_DATA *ch, const char* argument )
          return;
       }
       DISPOSE( mssp_info->worldOriginality );
-      mssp_info->worldOriginality = str_dup( argument );
+      mssp_info->worldOriginality = strdup( argument );
       ch_printf( ch, "MSSP value, %s has been changed to: %s\r\n", arg1, argument );
       save_mssp_info(  );
       return;
@@ -667,7 +668,6 @@ extern int top_mob_index;
 extern int top_obj_index;
 extern short num_skills;
 extern int top_prog;
-#define codebase "SmaugFUSS 1.9"
 
 short player_count( void )
 {
@@ -696,7 +696,7 @@ void send_mssp_data( DESCRIPTOR_DATA * d )
    mssp_reply( d, "PORT", "%d", port );
    mssp_reply( d, "UPTIME", "%d", (int)mud_start_time );
    mssp_reply( d, "PLAYERS", "%d", player_count( ) );
-   mssp_reply( d, "CODEBASE", "%s", codebase );
+   mssp_reply( d, "CODEBASE", "%s %s", CODENAME, CODEVERSION );
    mssp_reply( d, "CONTACT", "%s", mssp_info->contact );
    mssp_reply( d, "CREATED", "%d", mssp_info->created );
    mssp_reply( d, "ICON", "%s", mssp_info->icon );

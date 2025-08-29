@@ -82,13 +82,6 @@ const char *const o_flags[] = {
    "permanent", "nofill", "deathdrop", "skinned"
 };
 
-/* Compiler says these aren't in use, so for now they'll be blocked out.
-char *const mag_flags[] = {
-   "returning", "backstabber", "bane", "loyal", "haste", "drain",
-   "lightning_blade"
-};
-*/
-
 const char *const w_flags[] = {
    "take", "finger", "neck", "body", "head", "legs", "feet", "hands", "arms",
    "shield", "about", "waist", "wrist", "wield", "hold", "_dual_", "ears", "eyes",
@@ -237,7 +230,7 @@ const char *const npc_position[] = {
 };
 
 const char *const npc_sex[] = {
-   "neuter", "male", "female"
+   "Neuter", "Male", "Female"
 };
 
 /*
@@ -271,12 +264,12 @@ const char *flag_string( int bitvector, const char *const flagarray[] )
    for( x = 0; x < 32; ++x )
       if( IS_SET( bitvector, 1 << x ) )
       {
-         mudstrlcat( buf, flagarray[x], MAX_STRING_LENGTH );
+         strlcat( buf, flagarray[x], MAX_STRING_LENGTH );
          /*
           * don't catenate a blank if the last char is blank  --Gorog 
           */
          if( buf[0] != '\0' && ' ' != buf[strlen( buf ) - 1] )
-            mudstrlcat( buf, " ", MAX_STRING_LENGTH );
+            strlcat( buf, " ", MAX_STRING_LENGTH );
       }
    if( ( x = strlen( buf ) ) > 0 )
       buf[--x] = '\0';
@@ -293,8 +286,8 @@ const char *ext_flag_string( EXT_BV * bitvector, const char *const flagarray[] )
    for( x = 0; x < MAX_BITS; ++x )
       if( xIS_SET( *bitvector, x ) )
       {
-         mudstrlcat( buf, flagarray[x], MAX_STRING_LENGTH );
-         mudstrlcat( buf, " ", MAX_STRING_LENGTH );
+         strlcat( buf, flagarray[x], MAX_STRING_LENGTH );
+         strlcat( buf, " ", MAX_STRING_LENGTH );
       }
    if( ( x = strlen( buf ) ) > 0 )
       buf[--x] = '\0';
@@ -812,8 +805,6 @@ void smush_tilde( char *str )
    }
    if( len )
       strptr[len - 1] = last;
-
-   return;
 }
 
 void start_editing( CHAR_DATA * ch, const char *data )
@@ -843,6 +834,7 @@ void start_editing( CHAR_DATA * ch, const char *data )
    size = 0;
    lpos = 0;
    lines = 0;
+
    if( !data )
       bug( "%s: data is NULL!\r\n", __func__ );
    else
@@ -892,28 +884,28 @@ char *copy_buffer_nohash( CHAR_DATA * ch )
    if( !ch )
    {
       bug( "%s: null ch", __func__ );
-      return str_dup( "" );
+      return strdup( "" );
    }
 
    if( !ch->editor )
    {
       bug( "%s: null editor", __func__ );
-      return str_dup( "" );
+      return strdup( "" );
    }
 
    buf[0] = '\0';
    for( x = 0; x < ch->editor->numlines; x++ )
    {
-      mudstrlcpy( tmp, ch->editor->line[x], 100 );
+      strlcpy( tmp, ch->editor->line[x], 100 );
       len = strlen( tmp );
       if( tmp[len - 1] == '~' )
          tmp[len - 1] = '\0';
       else
-         mudstrlcat( tmp, "\n", 100 );
+         strlcat( tmp, "\n", 100 );
       smash_tilde( tmp );
-      mudstrlcat( buf, tmp, MAX_STRING_LENGTH );
+      strlcat( buf, tmp, MAX_STRING_LENGTH );
    }
-   return str_dup( buf );
+   return strdup( buf );
 }
 
 const char *copy_buffer( CHAR_DATA * ch )
@@ -937,14 +929,14 @@ const char *copy_buffer( CHAR_DATA * ch )
    buf[0] = '\0';
    for( x = 0; x < ch->editor->numlines; x++ )
    {
-      mudstrlcpy( tmp, ch->editor->line[x], 100 );
+      strlcpy( tmp, ch->editor->line[x], 100 );
       len = strlen( tmp );
-      if( tmp[len - 1] == '~' )
+      if( len > 0 && tmp[len - 1] == '~' )
          tmp[len - 1] = '\0';
       else
-         mudstrlcat( tmp, "\n", 100 );
+         strlcat( tmp, "\n", 100 );
       smash_tilde( tmp );
-      mudstrlcat( buf, tmp, MAX_STRING_LENGTH );
+      strlcat( buf, tmp, MAX_STRING_LENGTH );
    }
    return STRALLOC( buf );
 }
@@ -966,7 +958,7 @@ void stop_editing( CHAR_DATA * ch )
    ch->desc->connected = CON_PLAYING;
 }
 
-void do_goto( CHAR_DATA* ch, const char* argument)
+void do_goto( CHAR_DATA* ch, const char* argument )
 {
    char arg[MAX_INPUT_LENGTH];
    ROOM_INDEX_DATA *location, *in_room;
@@ -1087,10 +1079,9 @@ void do_goto( CHAR_DATA* ch, const char* argument)
          char_to_room( fch, location );
       }
    }
-   return;
 }
 
-void do_mset( CHAR_DATA* ch, const char* argument)
+void do_mset( CHAR_DATA* ch, const char* argument )
 {
    char arg1[MAX_INPUT_LENGTH];
    char arg2[MAX_INPUT_LENGTH];
@@ -1191,16 +1182,16 @@ void do_mset( CHAR_DATA* ch, const char* argument)
    if( victim )
    {
       lockvictim = TRUE;
-      mudstrlcpy( arg1, victim->name, MAX_INPUT_LENGTH );
+      strlcpy( arg1, victim->name, MAX_INPUT_LENGTH );
       argument = one_argument( argument, arg2 );
-      mudstrlcpy( arg3, argument, MAX_INPUT_LENGTH );
+      strlcpy( arg3, argument, MAX_INPUT_LENGTH );
    }
    else
    {
       lockvictim = FALSE;
       argument = one_argument( argument, arg1 );
       argument = one_argument( argument, arg2 );
-      mudstrlcpy( arg3, argument, MAX_INPUT_LENGTH );
+      strlcpy( arg3, argument, MAX_INPUT_LENGTH );
    }
 
    if( !str_cmp( arg1, "on" ) )
@@ -1744,7 +1735,7 @@ void do_mset( CHAR_DATA* ch, const char* argument)
       pwdnew = sha256_crypt( arg3 );   /* SHA-256 Encryption */
 
       DISPOSE( victim->pcdata->pwd );
-      victim->pcdata->pwd = str_dup( pwdnew );
+      victim->pcdata->pwd = strdup( pwdnew );
       if( IS_SET( sysdata.save_flags, SV_PASSCHG ) )
          save_char_obj( victim );
       send_to_char( "Ok.\r\n", ch );
@@ -1767,9 +1758,9 @@ void do_mset( CHAR_DATA* ch, const char* argument)
       smash_tilde( argument );
       DISPOSE( victim->pcdata->rank );
       if( !argument || argument[0] == '\0' || !str_cmp( argument, "none" ) )
-         victim->pcdata->rank = str_dup( "" );
+         victim->pcdata->rank = strdup( "" );
       else
-         victim->pcdata->rank = str_dup( argument );
+         victim->pcdata->rank = strdup( argument );
       send_to_char( "Ok.\r\n", ch );
       return;
    }
@@ -2232,8 +2223,8 @@ void do_mset( CHAR_DATA* ch, const char* argument)
    if( !str_cmp( arg2, "long" ) )
    {
       STRFREE( victim->long_descr );
-      mudstrlcpy( buf, arg3, MAX_STRING_LENGTH );
-      mudstrlcat( buf, "\r\n", MAX_STRING_LENGTH );
+      strlcpy( buf, arg3, MAX_STRING_LENGTH );
+      strlcat( buf, "\r\n", MAX_STRING_LENGTH );
       victim->long_descr = STRALLOC( buf );
       if( IS_NPC( victim ) && xIS_SET( victim->act, ACT_PROTOTYPE ) )
       {
@@ -3112,7 +3103,6 @@ void do_mset( CHAR_DATA* ch, const char* argument)
    }
    else
       do_mset( ch, "" );
-   return;
 }
 
 void do_oset( CHAR_DATA* ch, const char* argument )
@@ -3240,16 +3230,16 @@ void do_oset( CHAR_DATA* ch, const char* argument )
    if( obj )
    {
       lockobj = TRUE;
-      mudstrlcpy( arg1, obj->name, MAX_INPUT_LENGTH );
+      strlcpy( arg1, obj->name, MAX_INPUT_LENGTH );
       argument = one_argument( argument, arg2 );
-      mudstrlcpy( arg3, argument, MAX_INPUT_LENGTH );
+      strlcpy( arg3, argument, MAX_INPUT_LENGTH );
    }
    else
    {
       lockobj = FALSE;
       argument = one_argument( argument, arg1 );
       argument = one_argument( argument, arg2 );
-      mudstrlcpy( arg3, argument, MAX_INPUT_LENGTH );
+      strlcpy( arg3, argument, MAX_INPUT_LENGTH );
    }
 
    if( !str_cmp( arg1, "on" ) )
@@ -4084,7 +4074,6 @@ void do_oset( CHAR_DATA* ch, const char* argument )
    }
    else
       do_oset( ch, "" );
-   return;
 }
 
 /* rdig command by Dracones */
@@ -4177,12 +4166,10 @@ void do_rdig( CHAR_DATA* ch, const char* argument )
     */
    snprintf( tmpcmd, MAX_INPUT_LENGTH, "%d", vnum );
    do_goto( ch, tmpcmd );
-
-   return;
 }
 
 /* rgrid command by Dracones */
-void do_rgrid( CHAR_DATA* ch, const char* argument)
+void do_rgrid( CHAR_DATA* ch, const char* argument )
 {
    char arg[MAX_INPUT_LENGTH];
    char arg2[MAX_INPUT_LENGTH];
@@ -4386,7 +4373,6 @@ void do_rgrid( CHAR_DATA* ch, const char* argument)
          xit->exit_info = 0;
       }
    }
-   return;
 }
 
 /*
@@ -4413,6 +4399,7 @@ int get_dir( const char *txt )
       return 0;
    c2 = txt[1];
    edir = 0;
+
    switch ( c1 )
    {
       case 'n':
@@ -4593,7 +4580,6 @@ void add_room_affect( ROOM_INDEX_DATA * location, CHAR_DATA * ch, bool indexaffe
       for( vch = ch->in_room->first_person; vch; vch = vch->next_in_room )
          affect_modify( vch, paf, TRUE );
    }
-   return;
 }
 
 void remove_room_affect( ROOM_INDEX_DATA * location, CHAR_DATA * ch, bool indexaffect, const char *argument )
@@ -4672,7 +4658,6 @@ void remove_room_affect( ROOM_INDEX_DATA * location, CHAR_DATA * ch, bool indexa
       }
    }
    send_to_char( "Room affect not found.\r\n", ch );
-   return;
 }
 
 void do_rloop( CHAR_DATA * ch, const char *argument )
@@ -4735,10 +4720,9 @@ void do_rloop( CHAR_DATA * ch, const char *argument )
    char_from_room( ch );
    char_to_room( ch, original );
    send_to_char( "Done.\r\n", ch );
-   return;
 }
 
-void do_redit( CHAR_DATA* ch, const char* argument)
+void do_redit( CHAR_DATA* ch, const char* argument )
 {
    char arg[MAX_INPUT_LENGTH];
    char arg2[MAX_INPUT_LENGTH];
@@ -5131,11 +5115,11 @@ void do_redit( CHAR_DATA* ch, const char* argument)
          {
             if( IS_SET( xit->exit_info, 1 << value ) )
             {
-               mudstrlcat( buf, ex_flags[value], MAX_STRING_LENGTH );
-               mudstrlcat( buf, " ", MAX_STRING_LENGTH );
+               strlcat( buf, ex_flags[value], MAX_STRING_LENGTH );
+               strlcat( buf, " ", MAX_STRING_LENGTH );
             }
          }
-         mudstrlcat( buf, "]\r\n", MAX_STRING_LENGTH );
+         strlcat( buf, "]\r\n", MAX_STRING_LENGTH );
          send_to_char( buf, ch );
          return;
       }
@@ -5516,10 +5500,9 @@ void do_redit( CHAR_DATA* ch, const char* argument)
    }
    else
       do_redit( ch, "" );
-   return;
 }
 
-void do_ocreate( CHAR_DATA* ch, const char* argument)
+void do_ocreate( CHAR_DATA* ch, const char* argument )
 {
    char arg[MAX_INPUT_LENGTH];
    char arg2[MAX_INPUT_LENGTH];
@@ -5595,7 +5578,7 @@ void do_ocreate( CHAR_DATA* ch, const char* argument)
                     pObjIndex->short_descr, pObjIndex->vnum, pObjIndex->name );
 }
 
-void do_mcreate( CHAR_DATA* ch, const char* argument)
+void do_mcreate( CHAR_DATA* ch, const char* argument )
 {
    char arg[MAX_INPUT_LENGTH];
    char arg2[MAX_INPUT_LENGTH];
@@ -5780,7 +5763,7 @@ void edit_buffer( CHAR_DATA * ch, char *argument )
                lineln = snprintf( buf, MAX_INPUT_LENGTH, "%s%s", word2, wptr + wordln );
                if( lineln + wptr - edit->line[x] > 79 )
                   buf[lineln] = '\0';
-               mudstrlcpy( wptr, buf, MAX_STRING_LENGTH );
+               strlcpy( wptr, buf, MAX_STRING_LENGTH );
                lwptr = wptr + word2ln;
             }
          }
@@ -5865,13 +5848,14 @@ void edit_buffer( CHAR_DATA * ch, char *argument )
             else
             {
                for( x = ++edit->numlines; x > line; x-- )
-                  mudstrlcpy( edit->line[x], edit->line[x - 1], MAX_STRING_LENGTH );
-               mudstrlcpy( edit->line[line], "", MAX_STRING_LENGTH );
+                  strlcpy( edit->line[x], edit->line[x - 1], 81 );
+               strlcpy( edit->line[line], "", 81 );
                send_to_char( "Line inserted.\r\n> ", ch );
             }
          }
          return;
       }
+
       if( !str_cmp( cmd + 1, "d" ) )
       {
          if( edit->numlines == 0 )
@@ -5897,8 +5881,8 @@ void edit_buffer( CHAR_DATA * ch, char *argument )
                   return;
                }
                for( x = line; x < ( edit->numlines - 1 ); x++ )
-                  mudstrlcpy( edit->line[x], edit->line[x + 1], MAX_STRING_LENGTH );
-               mudstrlcpy( edit->line[edit->numlines--], "", MAX_STRING_LENGTH );
+                  strlcpy( edit->line[x], edit->line[x + 1], 81 );
+               strlcpy( edit->line[edit->numlines--], "", 81 );
                if( edit->on_line > edit->numlines )
                   edit->on_line = edit->numlines;
                send_to_char( "Line deleted.\r\n> ", ch );
@@ -5985,8 +5969,8 @@ void edit_buffer( CHAR_DATA * ch, char *argument )
          send_to_char( "(Long line trimmed)\r\n> ", ch );
       }
       else
-         mudstrlcpy( buf, argument, MAX_INPUT_LENGTH );
-      mudstrlcpy( edit->line[edit->on_line++], buf, MAX_STRING_LENGTH );
+         strlcpy( buf, argument, 80 );
+      strlcpy( edit->line[edit->on_line++], buf, 81 );
       if( edit->on_line > edit->numlines )
          edit->numlines++;
       if( edit->numlines >= max_buf_lines )
@@ -6038,8 +6022,8 @@ void assign_area( CHAR_DATA * ch )
          LINK( tarea, first_build, last_build, next, prev );
          tarea->first_room = tarea->last_room = NULL;
          snprintf( buf, MAX_STRING_LENGTH, "{PROTO} %s's area in progress", ch->name );
-         tarea->name = str_dup( buf );
-         tarea->filename = str_dup( taf );
+         tarea->name = strdup( buf );
+         tarea->filename = strdup( taf );
          snprintf( buf2, MAX_STRING_LENGTH, "%s", ch->name );
          tarea->author = STRALLOC( buf2 );
          tarea->age = 0;
@@ -6063,7 +6047,7 @@ void assign_area( CHAR_DATA * ch )
    }
 }
 
-void do_aassign( CHAR_DATA* ch, const char* argument)
+void do_aassign( CHAR_DATA* ch, const char* argument )
 {
    char buf[MAX_STRING_LENGTH];
    AREA_DATA *tarea, *tmp;
@@ -6090,7 +6074,7 @@ void do_aassign( CHAR_DATA* ch, const char* argument)
       return;
    }
 
-   mudstrlcpy( buf, argument, MAX_STRING_LENGTH );
+   strlcpy( buf, argument, MAX_STRING_LENGTH );
    tarea = NULL;
 
 /*	if ( get_trust(ch) >= sysdata.level_modify_proto )   */
@@ -6137,7 +6121,6 @@ void do_aassign( CHAR_DATA* ch, const char* argument)
    }
    ch->pcdata->area = tarea;
    ch_printf( ch, "Assigning you: %s\r\n", tarea->name );
-   return;
 }
 
 EXTRA_DESCR_DATA *SetRExtra( ROOM_INDEX_DATA * room, const char *keywords )
@@ -6717,515 +6700,9 @@ void fold_area( AREA_DATA * tarea, const char *fname, bool install )
 
    fprintf( fpout, "%s", "#ENDAREA\n" );
    FCLOSE( fpout );
-   return;
 }
 
-void old_fold_area( AREA_DATA * tarea, char *filename, bool install )
-{
-   RESET_DATA *pReset, *tReset, *gReset;
-   ROOM_INDEX_DATA *room;
-   MOB_INDEX_DATA *pMobIndex;
-   OBJ_INDEX_DATA *pObjIndex;
-   MPROG_DATA *mprog;
-   EXIT_DATA *xit;
-   EXTRA_DESCR_DATA *ed;
-   AFFECT_DATA *paf;
-   SHOP_DATA *pShop;
-   REPAIR_DATA *pRepair;
-   char buf[MAX_STRING_LENGTH];
-   FILE *fpout;
-   int vnum;
-   int val0, val1, val2, val3, val4, val5;
-   bool complexmob;
-
-   log_printf_plus( LOG_NORMAL, LEVEL_GREATER, "Saving %s...", tarea->filename );
-
-   snprintf( buf, MAX_STRING_LENGTH, "%s.bak", filename );
-   rename( filename, buf );
-   if( ( fpout = fopen( filename, "w" ) ) == NULL )
-   {
-      bug( "%s: cant open %s", __func__, filename );
-      perror( filename );
-      return;
-   }
-
-   if( install )
-      REMOVE_BIT( tarea->flags, AFLAG_PROTOTYPE );
-   fprintf( fpout, "#AREA   %s~\n\n\n\n", tarea->name );
-   fprintf( fpout, "#VERSION %d\n", AREA_VERSION_WRITE );
-   fprintf( fpout, "#AUTHOR %s~\n\n", tarea->author );
-   fprintf( fpout, "#CREDITS %s~\n\n", tarea->credits );
-   fprintf( fpout, "#RANGES\n" );
-   fprintf( fpout, "%d %d %d %d\n", tarea->low_soft_range,
-            tarea->hi_soft_range, tarea->low_hard_range, tarea->hi_hard_range );
-   fprintf( fpout, "$\n\n" );
-   if( tarea->resetmsg )   /* Rennard */
-      fprintf( fpout, "#RESETMSG %s~\n\n", tarea->resetmsg );
-   if( tarea->reset_frequency )
-      fprintf( fpout, "#FLAGS\n%d %d\n\n", tarea->flags, tarea->reset_frequency );
-   else
-      fprintf( fpout, "#FLAGS\n%d\n\n", tarea->flags );
-
-   fprintf( fpout, "#ECONOMY %d %d\n\n", tarea->high_economy, tarea->low_economy );
-
-   /*
-    * save mobiles 
-    */
-   fprintf( fpout, "#MOBILES\n" );
-   for( vnum = tarea->low_m_vnum; vnum <= tarea->hi_m_vnum; vnum++ )
-   {
-      if( ( pMobIndex = get_mob_index( vnum ) ) == NULL )
-         continue;
-      if( install )
-         xREMOVE_BIT( pMobIndex->act, ACT_PROTOTYPE );
-      if( pMobIndex->perm_str != 13 || pMobIndex->perm_int != 13
-          || pMobIndex->perm_wis != 13 || pMobIndex->perm_dex != 13
-          || pMobIndex->perm_con != 13 || pMobIndex->perm_cha != 13
-          || pMobIndex->perm_lck != 13
-          || pMobIndex->hitroll != 0 || pMobIndex->damroll != 0
-          || pMobIndex->race != 0 || pMobIndex->Class != 3
-          || !xIS_EMPTY( pMobIndex->attacks )
-          || !xIS_EMPTY( pMobIndex->defenses )
-          || pMobIndex->height != 0 || pMobIndex->weight != 0
-          || pMobIndex->speaks != 0 || pMobIndex->speaking != 0 || pMobIndex->xflags != 0 || pMobIndex->numattacks != 0 )
-         complexmob = TRUE;
-      else
-         complexmob = FALSE;
-      fprintf( fpout, "#%d\n", vnum );
-      fprintf( fpout, "%s~\n", pMobIndex->player_name );
-      fprintf( fpout, "%s~\n", pMobIndex->short_descr );
-      fprintf( fpout, "%s~\n", strip_cr( pMobIndex->long_descr ) );
-      fprintf( fpout, "%s~\n", strip_cr( pMobIndex->description ) );
-      fprintf( fpout, "%s ", print_bitvector( &pMobIndex->act ) );
-      fprintf( fpout, "%s %d %c\n", print_bitvector( &pMobIndex->affected_by ),
-               pMobIndex->alignment, complexmob ? 'C' : 'S' );
-
-      fprintf( fpout, "%d %d %d ", pMobIndex->level, pMobIndex->mobthac0, pMobIndex->ac );
-      fprintf( fpout, "%dd%d+%d ", pMobIndex->hitnodice, pMobIndex->hitsizedice, pMobIndex->hitplus );
-      fprintf( fpout, "%dd%d+%d\n", pMobIndex->damnodice, pMobIndex->damsizedice, pMobIndex->damplus );
-      fprintf( fpout, "%d %d\n", pMobIndex->gold, pMobIndex->exp );
-      /*
-       * Need to convert to new positions correctly on loadup sigh -Shaddai 
-       */
-      fprintf( fpout, "%d %d %d\n", pMobIndex->position + 100, pMobIndex->defposition + 100, pMobIndex->sex );
-      if( complexmob )
-      {
-         fprintf( fpout, "%d %d %d %d %d %d %d\n",
-                  pMobIndex->perm_str,
-                  pMobIndex->perm_int,
-                  pMobIndex->perm_wis, pMobIndex->perm_dex, pMobIndex->perm_con, pMobIndex->perm_cha, pMobIndex->perm_lck );
-         fprintf( fpout, "%d %d %d %d %d\n",
-                  pMobIndex->saving_poison_death,
-                  pMobIndex->saving_wand,
-                  pMobIndex->saving_para_petri, pMobIndex->saving_breath, pMobIndex->saving_spell_staff );
-         fprintf( fpout, "%d %d %d %d %d %d %d\n",
-                  pMobIndex->race,
-                  pMobIndex->Class,
-                  pMobIndex->height, pMobIndex->weight, pMobIndex->speaks, pMobIndex->speaking, pMobIndex->numattacks );
-         fprintf( fpout, "%d %d %d %d %d %d %s ",
-                  pMobIndex->hitroll,
-                  pMobIndex->damroll,
-                  pMobIndex->xflags,
-                  pMobIndex->resistant, pMobIndex->immune, pMobIndex->susceptible, print_bitvector( &pMobIndex->attacks ) );
-         fprintf( fpout, "%s\n", print_bitvector( &pMobIndex->defenses ) );
-      }
-      if( pMobIndex->mudprogs )
-      {
-         int count = 0;
-         for( mprog = pMobIndex->mudprogs; mprog; mprog = mprog->next )
-         {
-            if( ( mprog->arglist && mprog->arglist[0] != '\0' ) )
-            {
-               if( mprog->type == IN_FILE_PROG )
-               {
-                  fprintf( fpout, "> %s %s~\n", mprog_type_to_name( mprog->type ), mprog->arglist );
-                  count++;
-               }
-               /*
-                * Don't let it save progs which came from files. That would be silly. 
-                */
-               else if( mprog->comlist && mprog->comlist[0] != '\0' && !mprog->fileprog )
-               {
-                  fprintf( fpout, "> %s %s~\n%s~\n", mprog_type_to_name( mprog->type ),
-                           mprog->arglist, strip_cr( mprog->comlist ) );
-                  count++;
-               }
-            }
-         }
-         if( count > 0 )
-            fprintf( fpout, "%s", "|\n" );
-      }
-   }
-   fprintf( fpout, "#0\n\n\n" );
-   if( install && vnum < tarea->hi_m_vnum )
-      tarea->hi_m_vnum = vnum - 1;
-
-   /*
-    * save objects 
-    */
-   fprintf( fpout, "#OBJECTS\n" );
-   for( vnum = tarea->low_o_vnum; vnum <= tarea->hi_o_vnum; vnum++ )
-   {
-      if( ( pObjIndex = get_obj_index( vnum ) ) == NULL )
-         continue;
-      if( install )
-         xREMOVE_BIT( pObjIndex->extra_flags, ITEM_PROTOTYPE );
-      fprintf( fpout, "#%d\n", vnum );
-      fprintf( fpout, "%s~\n", pObjIndex->name );
-      fprintf( fpout, "%s~\n", pObjIndex->short_descr );
-      fprintf( fpout, "%s~\n", pObjIndex->description );
-      fprintf( fpout, "%s~\n", pObjIndex->action_desc );
-      fprintf( fpout, "%d %s %d %d %d\n", pObjIndex->item_type,
-               print_bitvector( &pObjIndex->extra_flags ), pObjIndex->wear_flags, pObjIndex->layers, pObjIndex->level );
-
-      val0 = pObjIndex->value[0];
-      val1 = pObjIndex->value[1];
-      val2 = pObjIndex->value[2];
-      val3 = pObjIndex->value[3];
-      val4 = pObjIndex->value[4];
-      val5 = pObjIndex->value[5];
-      switch ( pObjIndex->item_type )
-      {
-         case ITEM_PILL:
-         case ITEM_POTION:
-         case ITEM_SCROLL:
-            if( IS_VALID_SN( val1 ) )
-            {
-               val1 = HAS_SPELL_INDEX;
-            }
-            if( IS_VALID_SN( val2 ) )
-            {
-               val2 = HAS_SPELL_INDEX;
-            }
-            if( IS_VALID_SN( val3 ) )
-            {
-               val3 = HAS_SPELL_INDEX;
-            }
-            break;
-
-         case ITEM_STAFF:
-         case ITEM_WAND:
-            if( IS_VALID_SN( val3 ) )
-            {
-               val3 = HAS_SPELL_INDEX;
-            }
-            break;
-         case ITEM_SALVE:
-            if( IS_VALID_SN( val4 ) )
-            {
-               val4 = HAS_SPELL_INDEX;
-            }
-            if( IS_VALID_SN( val5 ) )
-            {
-               val5 = HAS_SPELL_INDEX;
-            }
-            break;
-      }
-      if( val4 || val5 )
-         fprintf( fpout, "%d %d %d %d %d %d\n", val0, val1, val2, val3, val4, val5 );
-      else
-         fprintf( fpout, "%d %d %d %d\n", val0, val1, val2, val3 );
-
-      fprintf( fpout, "%d %d %d\n", pObjIndex->weight,
-               pObjIndex->cost, pObjIndex->rent ? pObjIndex->rent : ( int )( pObjIndex->cost / 10 ) );
-
-      switch ( pObjIndex->item_type )
-      {
-         case ITEM_PILL:
-         case ITEM_POTION:
-         case ITEM_SCROLL:
-            fprintf( fpout, "'%s' '%s' '%s'\n",
-                     IS_VALID_SN( pObjIndex->value[1] ) ?
-                     skill_table[pObjIndex->value[1]]->name : "NONE",
-                     IS_VALID_SN( pObjIndex->value[2] ) ?
-                     skill_table[pObjIndex->value[2]]->name : "NONE",
-                     IS_VALID_SN( pObjIndex->value[3] ) ? skill_table[pObjIndex->value[3]]->name : "NONE" );
-            break;
-         case ITEM_STAFF:
-         case ITEM_WAND:
-            fprintf( fpout, "'%s'\n", IS_VALID_SN( pObjIndex->value[3] ) ? skill_table[pObjIndex->value[3]]->name : "NONE" );
-
-            break;
-         case ITEM_SALVE:
-            fprintf( fpout, "'%s' '%s'\n",
-                     IS_VALID_SN( pObjIndex->value[4] ) ?
-                     skill_table[pObjIndex->value[4]]->name : "NONE",
-                     IS_VALID_SN( pObjIndex->value[5] ) ? skill_table[pObjIndex->value[5]]->name : "NONE" );
-            break;
-      }
-
-      for( ed = pObjIndex->first_extradesc; ed; ed = ed->next )
-         fprintf( fpout, "E\n%s~\n%s~\n", ed->keyword, strip_cr( ed->description ) );
-
-      for( paf = pObjIndex->first_affect; paf; paf = paf->next )
-         fprintf( fpout, "A\n%d %d\n", paf->location,
-                  ( ( paf->location == APPLY_WEAPONSPELL
-                      || paf->location == APPLY_WEARSPELL
-                      || paf->location == APPLY_REMOVESPELL
-                      || paf->location == APPLY_STRIPSN
-                      || paf->location == APPLY_RECURRINGSPELL )
-                    && IS_VALID_SN( paf->modifier ) ) ? skill_table[paf->modifier]->slot : paf->modifier );
-
-      if( pObjIndex->mudprogs )
-      {
-         int count = 0;
-         for( mprog = pObjIndex->mudprogs; mprog; mprog = mprog->next )
-         {
-            if( ( mprog->arglist && mprog->arglist[0] != '\0' ) )
-            {
-               if( mprog->type == IN_FILE_PROG )
-               {
-                  fprintf( fpout, "> %s %s~\n", mprog_type_to_name( mprog->type ), mprog->arglist );
-                  count++;
-               }
-               /*
-                * Don't let it save progs which came from files. That would be silly. 
-                */
-               else if( mprog->comlist && mprog->comlist[0] != '\0' && !mprog->fileprog )
-               {
-                  fprintf( fpout, "> %s %s~\n%s~\n", mprog_type_to_name( mprog->type ),
-                           mprog->arglist, strip_cr( mprog->comlist ) );
-                  count++;
-               }
-            }
-         }
-         if( count > 0 )
-            fprintf( fpout, "%s", "|\n" );
-      }
-   }
-   fprintf( fpout, "#0\n\n\n" );
-   if( install && vnum < tarea->hi_o_vnum )
-      tarea->hi_o_vnum = vnum - 1;
-
-   /*
-    * save rooms   
-    */
-   fprintf( fpout, "#ROOMS\n" );
-   for( vnum = tarea->low_r_vnum; vnum <= tarea->hi_r_vnum; vnum++ )
-   {
-      if( ( room = get_room_index( vnum ) ) == NULL )
-         continue;
-      if( install )
-      {
-         CHAR_DATA *victim, *vnext;
-         OBJ_DATA *obj, *obj_next;
-
-         /*
-          * remove prototype flag from room 
-          */
-         xREMOVE_BIT( room->room_flags, ROOM_PROTOTYPE );
-         /*
-          * purge room of (prototyped) mobiles 
-          */
-         for( victim = room->first_person; victim; victim = vnext )
-         {
-            vnext = victim->next_in_room;
-            if( IS_NPC( victim ) )
-               extract_char( victim, TRUE );
-         }
-         /*
-          * purge room of (prototyped) objects 
-          */
-         for( obj = room->first_content; obj; obj = obj_next )
-         {
-            obj_next = obj->next_content;
-            extract_obj( obj );
-         }
-      }
-      fprintf( fpout, "#%d\n", vnum );
-      fprintf( fpout, "%s~\n", room->name );
-      fprintf( fpout, "%s~\n", strip_cr( room->description ) );
-      if( ( room->tele_delay > 0 && room->tele_vnum > 0 ) || room->tunnel > 0 || room->max_weight > 0 )
-         fprintf( fpout, "0 %s %d %d %d %d %d\n", print_bitvector( &room->room_flags ),
-                  room->sector_type, room->tele_delay, room->tele_vnum, room->tunnel, room->max_weight );
-      else
-         fprintf( fpout, "0 %s %d\n", print_bitvector( &room->room_flags ), room->sector_type );
-      for( xit = room->first_exit; xit; xit = xit->next )
-      {
-         if( IS_SET( xit->exit_info, EX_PORTAL ) ) /* don't fold portals */
-            continue;
-         fprintf( fpout, "D%d\n", xit->vdir );
-         fprintf( fpout, "%s~\n", strip_cr( xit->description ) );
-         fprintf( fpout, "%s~\n", strip_cr( xit->keyword ) );
-         if( xit->distance > 1 || xit->pull )
-            fprintf( fpout, "%d %d %d %d %d %d\n",
-                     xit->exit_info & ~EX_BASHED, xit->key, xit->vnum, xit->distance, xit->pulltype, xit->pull );
-         else
-            fprintf( fpout, "%d %d %d\n", xit->exit_info & ~EX_BASHED, xit->key, xit->vnum );
-      }
-
-      for( pReset = room->first_reset; pReset; pReset = pReset->next )
-      {
-         switch ( pReset->command ) /* extra arg1 arg2 arg3 */
-         {
-            default:
-            case '*':
-               break;
-            case 'm':
-            case 'M':
-            case 'o':
-            case 'O':
-               fprintf( fpout, "R %c %d %d %d %d\n", UPPER( pReset->command ),
-                        pReset->extra, pReset->arg1, pReset->arg2, pReset->arg3 );
-
-               for( tReset = pReset->first_reset; tReset; tReset = tReset->next_reset )
-               {
-                  switch ( tReset->command )
-                  {
-                     case 'p':
-                     case 'P':
-                     case 'e':
-                     case 'E':
-                        fprintf( fpout, "  R %c %d %d %d %d\n", UPPER( tReset->command ),
-                                 tReset->extra, tReset->arg1, tReset->arg2, tReset->arg3 );
-                        if( tReset->first_reset )
-                        {
-                           for( gReset = tReset->first_reset; gReset; gReset = gReset->next_reset )
-                           {
-                              if( gReset->command != 'p' && gReset->command != 'P' )
-                                 continue;
-                              fprintf( fpout, "    R %c %d %d %d %d\n", UPPER( gReset->command ),
-                                       gReset->extra, gReset->arg1, gReset->arg2, gReset->arg3 );
-                           }
-                        }
-                        break;
-
-                     case 'g':
-                     case 'G':
-                        fprintf( fpout, "  R %c %d %d %d\n", UPPER( tReset->command ),
-                                 tReset->extra, tReset->arg1, tReset->arg2 );
-                        if( tReset->first_reset )
-                        {
-                           for( gReset = tReset->first_reset; gReset; gReset = gReset->next_reset )
-                           {
-                              if( gReset->command != 'p' && gReset->command != 'P' )
-                                 continue;
-                              fprintf( fpout, "    R %c %d %d %d %d\n", UPPER( gReset->command ),
-                                       gReset->extra, gReset->arg1, gReset->arg2, gReset->arg3 );
-                           }
-                        }
-                        break;
-
-                     case 't':
-                     case 'T':
-                     case 'h':
-                     case 'H':
-                        fprintf( fpout, "  R %c %d %d %d %d\n", UPPER( tReset->command ),
-                                 tReset->extra, tReset->arg1, tReset->arg2, tReset->arg3 );
-                        break;
-                  }
-               }
-               break;
-
-            case 'd':
-            case 'D':
-            case 't':
-            case 'T':
-            case 'h':
-            case 'H':
-               fprintf( fpout, "R %c %d %d %d %d\n", UPPER( pReset->command ),
-                        pReset->extra, pReset->arg1, pReset->arg2, pReset->arg3 );
-               break;
-
-            case 'r':
-            case 'R':
-               fprintf( fpout, "R %c %d %d %d\n", UPPER( pReset->command ), pReset->extra, pReset->arg1, pReset->arg2 );
-               break;
-         }
-      }
-
-      for( ed = room->first_extradesc; ed; ed = ed->next )
-         fprintf( fpout, "E\n%s~\n%s~\n", ed->keyword, strip_cr( ed->description ) );
-
-      if( room->mudprogs )
-      {
-         int count = 0;
-         for( mprog = room->mudprogs; mprog; mprog = mprog->next )
-         {
-            if( ( mprog->arglist && mprog->arglist[0] != '\0' ) )
-            {
-               if( mprog->type == IN_FILE_PROG )
-               {
-                  fprintf( fpout, "> %s %s~\n", mprog_type_to_name( mprog->type ), mprog->arglist );
-                  count++;
-               }
-               /*
-                * Don't let it save progs which came from files. That would be silly. 
-                */
-               else if( mprog->comlist && mprog->comlist[0] != '\0' && !mprog->fileprog )
-               {
-                  fprintf( fpout, "> %s %s~\n%s~\n", mprog_type_to_name( mprog->type ),
-                           mprog->arglist, strip_cr( mprog->comlist ) );
-                  count++;
-               }
-            }
-         }
-         if( count > 0 )
-            fprintf( fpout, "%s", "|\n" );
-      }
-      fprintf( fpout, "S\n" );
-   }
-   fprintf( fpout, "#0\n\n\n" );
-   if( install && vnum < tarea->hi_r_vnum )
-      tarea->hi_r_vnum = vnum - 1;
-
-   /*
-    * save shops 
-    */
-   fprintf( fpout, "#SHOPS\n" );
-   for( vnum = tarea->low_m_vnum; vnum <= tarea->hi_m_vnum; vnum++ )
-   {
-      if( ( pMobIndex = get_mob_index( vnum ) ) == NULL )
-         continue;
-      if( ( pShop = pMobIndex->pShop ) == NULL )
-         continue;
-      fprintf( fpout, " %d   %2d %2d %2d %2d %2d   %3d %3d",
-               pShop->keeper,
-               pShop->buy_type[0],
-               pShop->buy_type[1],
-               pShop->buy_type[2], pShop->buy_type[3], pShop->buy_type[4], pShop->profit_buy, pShop->profit_sell );
-      fprintf( fpout, "        %2d %2d    ; %s\n", pShop->open_hour, pShop->close_hour, pMobIndex->short_descr );
-   }
-   fprintf( fpout, "0\n\n\n" );
-
-   /*
-    * save repair shops 
-    */
-   fprintf( fpout, "#REPAIRS\n" );
-   for( vnum = tarea->low_m_vnum; vnum <= tarea->hi_m_vnum; vnum++ )
-   {
-      if( ( pMobIndex = get_mob_index( vnum ) ) == NULL )
-         continue;
-      if( ( pRepair = pMobIndex->rShop ) == NULL )
-         continue;
-      fprintf( fpout, " %d   %2d %2d %2d         %3d %3d",
-               pRepair->keeper,
-               pRepair->fix_type[0], pRepair->fix_type[1], pRepair->fix_type[2], pRepair->profit_fix, pRepair->shop_type );
-      fprintf( fpout, "        %2d %2d    ; %s\n", pRepair->open_hour, pRepair->close_hour, pMobIndex->short_descr );
-   }
-   fprintf( fpout, "0\n\n\n" );
-
-   /*
-    * save specials 
-    */
-   fprintf( fpout, "%s", "#SPECIALS\n" );
-   for( vnum = tarea->low_m_vnum; vnum <= tarea->hi_m_vnum; vnum++ )
-   {
-      if( ( pMobIndex = get_mob_index( vnum ) ) != NULL )
-         if( pMobIndex->spec_fun )
-            fprintf( fpout, "M  %d %s\n", pMobIndex->vnum, pMobIndex->spec_funname );
-   }
-   fprintf( fpout, "S\n\n\n" );
-
-   /*
-    * END 
-    */
-   fprintf( fpout, "#$\n" );
-   FCLOSE( fpout );
-   return;
-}
-
-void do_savearea( CHAR_DATA* ch, const char* argument)
+void do_savearea( CHAR_DATA* ch, const char* argument )
 {
    AREA_DATA *tarea;
    char filename[256];
@@ -7289,7 +6766,7 @@ void do_savearea( CHAR_DATA* ch, const char* argument)
    send_to_char( "Done.\r\n", ch );
 }
 
-void do_loadarea( CHAR_DATA* ch, const char* argument)
+void do_loadarea( CHAR_DATA* ch, const char* argument )
 {
    AREA_DATA *tarea;
    char filename[256];
@@ -7378,7 +6855,7 @@ void do_loadarea( CHAR_DATA* ch, const char* argument)
  *
  * NOTE: Use of this command is not recommended.		-Thoric
  */
-void do_unfoldarea( CHAR_DATA* ch, const char* argument)
+void do_unfoldarea( CHAR_DATA* ch, const char* argument )
 {
 
    set_char_color( AT_IMMORT, ch );
@@ -7393,11 +6870,9 @@ void do_unfoldarea( CHAR_DATA* ch, const char* argument)
    load_area_file( last_area, argument );
    fBootDb = FALSE;
    check_planes( NULL );
-   return;
 }
 
-
-void do_foldarea( CHAR_DATA* ch, const char* argument)
+void do_foldarea( CHAR_DATA* ch, const char* argument )
 {
    AREA_DATA *tarea;
 
@@ -7455,7 +6930,7 @@ void write_area_list( void )
  * A complicated to use command as it currently exists.		-Thoric
  * Once area->author and area->name are cleaned up... it will be easier
  */
-void do_installarea( CHAR_DATA* ch, const char* argument)
+void do_installarea( CHAR_DATA* ch, const char* argument )
 {
    AREA_DATA *tarea;
    char arg[MAX_INPUT_LENGTH];
@@ -7479,7 +6954,7 @@ void do_installarea( CHAR_DATA* ch, const char* argument)
          if( argument && argument[0] != '\0' )
          {
             DISPOSE( tarea->name );
-            tarea->name = str_dup( argument );
+            tarea->name = strdup( argument );
          }
 
          /*
@@ -7551,10 +7026,9 @@ void do_installarea( CHAR_DATA* ch, const char* argument)
       }
    }
    send_to_char( "No such area exists.\r\n", ch );
-   return;
 }
 
-void do_astat( CHAR_DATA* ch, const char* argument)
+void do_astat( CHAR_DATA* ch, const char* argument )
 {
    AREA_DATA *tarea;
    bool proto, found;
@@ -7650,7 +7124,7 @@ bool check_for_area_conflicts( AREA_DATA * carea, int lo, int hi )
    return FALSE;
 }
 
-void do_aset( CHAR_DATA* ch, const char* argument)
+void do_aset( CHAR_DATA* ch, const char* argument )
 {
    AREA_DATA *tarea;
    char arg1[MAX_INPUT_LENGTH];
@@ -7728,7 +7202,7 @@ void do_aset( CHAR_DATA* ch, const char* argument)
          }
       }
       DISPOSE( tarea->name );
-      tarea->name = str_dup( argument );
+      tarea->name = strdup( argument );
       send_to_char( "Done.\r\n", ch );
       return;
    }
@@ -7746,9 +7220,9 @@ void do_aset( CHAR_DATA* ch, const char* argument)
       if( !is_valid_filename( ch, "", argument ) )
          return;
 
-      mudstrlcpy( filename, tarea->filename, 256 );
+      strlcpy( filename, tarea->filename, 256 );
       DISPOSE( tarea->filename );
-      tarea->filename = str_dup( argument );
+      tarea->filename = strdup( argument );
       rename( filename, tarea->filename );
       write_area_list(  );
       send_to_char( "Done.\r\n", ch );
@@ -7974,7 +7448,7 @@ void do_aset( CHAR_DATA* ch, const char* argument)
       if( tarea->resetmsg )
          DISPOSE( tarea->resetmsg );
       if( str_cmp( argument, "clear" ) && argument && argument[0] != '\0' )
-         tarea->resetmsg = str_dup( argument );
+         tarea->resetmsg = strdup( argument );
       send_to_char( "Done.\r\n", ch );
       return;
    }  /* Rennard */
@@ -8011,11 +7485,9 @@ void do_aset( CHAR_DATA* ch, const char* argument)
    }
 
    do_aset( ch, "" );
-   return;
 }
 
-
-void do_rlist( CHAR_DATA* ch, const char* argument)
+void do_rlist( CHAR_DATA* ch, const char* argument )
 {
    ROOM_INDEX_DATA *room;
    int vnum;
@@ -8085,10 +7557,9 @@ void do_rlist( CHAR_DATA* ch, const char* argument)
          continue;
       pager_printf( ch, "%5d) %s\r\n", vnum, room->name );
    }
-   return;
 }
 
-void do_olist( CHAR_DATA* ch, const char* argument)
+void do_olist( CHAR_DATA* ch, const char* argument )
 {
    OBJ_INDEX_DATA *obj;
    int vnum;
@@ -8143,10 +7614,9 @@ void do_olist( CHAR_DATA* ch, const char* argument)
          continue;
       pager_printf( ch, "%5d) %-20s (%s)\r\n", vnum, obj->name, obj->short_descr );
    }
-   return;
 }
 
-void do_mlist( CHAR_DATA* ch, const char* argument)
+void do_mlist( CHAR_DATA* ch, const char* argument )
 {
    MOB_INDEX_DATA *mob;
    int vnum;
@@ -8214,13 +7684,12 @@ void mpedit( CHAR_DATA * ch, MPROG_DATA * mprg, int mptype, const char *argument
    if( !mprg->comlist )
       mprg->comlist = STRALLOC( "" );
    start_editing( ch, mprg->comlist );
-   return;
 }
 
 /*
  * Mobprogram editing - cumbersome				-Thoric
  */
-void do_mpedit( CHAR_DATA* ch, const char* argument)
+void do_mpedit( CHAR_DATA* ch, const char* argument )
 {
    char arg1[MAX_INPUT_LENGTH];
    char arg2[MAX_INPUT_LENGTH];
@@ -8546,7 +8015,7 @@ void do_mpedit( CHAR_DATA* ch, const char* argument)
    do_mpedit( ch, "" );
 }
 
-void do_opedit( CHAR_DATA* ch, const char* argument)
+void do_opedit( CHAR_DATA* ch, const char* argument )
 {
    char arg1[MAX_INPUT_LENGTH];
    char arg2[MAX_INPUT_LENGTH];
@@ -8879,10 +8348,9 @@ void rpedit( CHAR_DATA * ch, MPROG_DATA * mprg, int mptype, char *argument )
    if( !mprg->comlist )
       mprg->comlist = STRALLOC( "" );
    start_editing( ch, mprg->comlist );
-   return;
 }
 
-void do_rpedit( CHAR_DATA* ch, const char* argument)
+void do_rpedit( CHAR_DATA* ch, const char* argument )
 {
    char arg1[MAX_INPUT_LENGTH];
    char arg2[MAX_INPUT_LENGTH];
@@ -9174,7 +8642,7 @@ void do_rpedit( CHAR_DATA* ch, const char* argument)
    do_rpedit( ch, "" );
 }
 
-void do_rdelete( CHAR_DATA* ch, const char* argument)
+void do_rdelete( CHAR_DATA* ch, const char* argument )
 {
    ROOM_INDEX_DATA *location;
 
@@ -9211,7 +8679,6 @@ void do_rdelete( CHAR_DATA* ch, const char* argument)
    delete_room( location );
    fix_exits(  ); /* Need to call this to solve a crash */
    ch_printf( ch, "Room %s has been deleted.\r\n", argument );
-   return;
 }
 
 void do_odelete( CHAR_DATA* ch, const char* argument )
@@ -9260,10 +8727,9 @@ void do_odelete( CHAR_DATA* ch, const char* argument )
 
    delete_obj( obj );
    ch_printf( ch, "Object %d has been deleted.\r\n", vnum );
-   return;
 }
 
-void do_mdelete( CHAR_DATA* ch, const char* argument)
+void do_mdelete( CHAR_DATA* ch, const char* argument )
 {
    MOB_INDEX_DATA *mob;
    int vnum;
@@ -9309,7 +8775,6 @@ void do_mdelete( CHAR_DATA* ch, const char* argument)
 
    delete_mob( mob );
    ch_printf( ch, "Mob %d has been deleted.\r\n", vnum );
-   return;
 }
 
 /*  
@@ -9327,7 +8792,7 @@ void mpcopy( MPROG_DATA * source, MPROG_DATA * destination )
    destination->next = NULL;
 }
 
-void do_opcopy( CHAR_DATA* ch, const char* argument)
+void do_opcopy( CHAR_DATA* ch, const char* argument )
 {
    char sobj[MAX_INPUT_LENGTH];
    char prog[MAX_INPUT_LENGTH];
@@ -9510,7 +8975,7 @@ void do_opcopy( CHAR_DATA* ch, const char* argument)
    do_opcopy( ch, "" );
 }
 
-void do_mpcopy( CHAR_DATA* ch, const char* argument)
+void do_mpcopy( CHAR_DATA* ch, const char* argument )
 {
    char smob[MAX_INPUT_LENGTH];
    char prog[MAX_INPUT_LENGTH];
@@ -9697,7 +9162,7 @@ void do_mpcopy( CHAR_DATA* ch, const char* argument)
    do_mpcopy( ch, "" );
 }
 
-void do_rpcopy( CHAR_DATA* ch, const char* argument)
+void do_rpcopy( CHAR_DATA* ch, const char* argument )
 {
    char sroom[MAX_INPUT_LENGTH];
    char prog[MAX_INPUT_LENGTH];
@@ -9932,7 +9397,7 @@ void RelDestroy( relation_type tp, void *actor, void *subject )
       }
 }
 
-void do_findexit( CHAR_DATA* ch, const char* argument)
+void do_findexit( CHAR_DATA* ch, const char* argument )
 {
    ROOM_INDEX_DATA *room;
    EXIT_DATA *pexit;
@@ -10017,7 +9482,6 @@ void do_findexit( CHAR_DATA* ch, const char* argument)
             }
          }
    }
-   return;
 }
 
 /* Lists all exits that links the specified area with others.
@@ -10025,7 +9489,7 @@ void do_findexit( CHAR_DATA* ch, const char* argument)
  * Modified to include a "reverse" option similar to Smaug 1.8, plus provided
  * a colorized version.  Slightly reworked the logic too. - Luc 06/2007
  */
-void do_alinks( CHAR_DATA* ch, const char* argument)
+void do_alinks( CHAR_DATA* ch, const char* argument )
 {
    static const char *dirs[] = { "n", "e", "s", "w", "u", "d", "ne", "nw", "se", "sw", "--" };
    char buf[MAX_INPUT_LENGTH];

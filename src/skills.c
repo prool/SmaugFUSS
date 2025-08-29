@@ -97,8 +97,6 @@ void free_skill( SKILLTYPE * skill )
    skill->spell_fun = NULL;
    skill->skill_fun = NULL;
    DISPOSE( skill );
-
-   return;
 }
 
 void free_skills( void )
@@ -119,7 +117,6 @@ void free_skills( void )
       skill = herb_table[hash];
       free_skill( skill );
    }
-   return;
 }
 
 /*
@@ -128,9 +125,7 @@ void free_skills( void )
 void skill_notfound( CHAR_DATA * ch, const char *argument )
 {
    send_to_char( "Huh?\r\n", ch );
-   return;
 }
-
 
 int get_ssave( const char *name )
 {
@@ -766,7 +761,7 @@ bool check_skill( CHAR_DATA * ch, char *command, char *argument )
    return TRUE;
 }
 
-void do_skin( CHAR_DATA* ch, const char* argument)
+void do_skin( CHAR_DATA* ch, const char* argument )
 {
    OBJ_INDEX_DATA *korps;
    OBJ_DATA *corpse;
@@ -854,14 +849,13 @@ void do_skin( CHAR_DATA* ch, const char* argument)
    separate_obj( corpse );
    xSET_BIT( corpse->extra_flags, ITEM_SKINNED );
    obj_to_char( skin, ch );
-   return;
 }
 
 /*
  * Lookup a skills information
  * High god command
  */
-void do_slookup( CHAR_DATA* ch, const char* argument)
+void do_slookup( CHAR_DATA* ch, const char* argument )
 {
    char buf[MAX_STRING_LENGTH];
    char arg[MAX_INPUT_LENGTH];
@@ -937,14 +931,14 @@ void do_slookup( CHAR_DATA* ch, const char* argument)
       {
          int x;
 
-         mudstrlcpy( buf, "Flags:", MAX_STRING_LENGTH );
+         strlcpy( buf, "Flags:", MAX_STRING_LENGTH );
          for( x = 0; x < 32; ++x )
             if( SPELL_FLAG( skill, 1 << x ) )
             {
-               mudstrlcat( buf, " ", MAX_STRING_LENGTH );
-               mudstrlcat( buf, spell_flag[x], MAX_STRING_LENGTH );
+               strlcat( buf, " ", MAX_STRING_LENGTH );
+               strlcat( buf, spell_flag[x], MAX_STRING_LENGTH );
             }
-         mudstrlcat( buf, "\r\n", MAX_STRING_LENGTH );
+         strlcat( buf, "\r\n", MAX_STRING_LENGTH );
          send_to_char( buf, ch );
       }
       ch_printf( ch, "Saves: %s  SaveEffect: %s\r\n",
@@ -979,29 +973,29 @@ void do_slookup( CHAR_DATA* ch, const char* argument)
          snprintf( buf, MAX_STRING_LENGTH, "Affect %d", ++cnt );
          if( aff->location )
          {
-            mudstrlcat( buf, " modifies ", MAX_STRING_LENGTH );
-            mudstrlcat( buf, a_types[aff->location % REVERSE_APPLY], MAX_STRING_LENGTH );
-            mudstrlcat( buf, " by '", MAX_STRING_LENGTH );
-            mudstrlcat( buf, aff->modifier, MAX_STRING_LENGTH );
+            strlcat( buf, " modifies ", MAX_STRING_LENGTH );
+            strlcat( buf, a_types[aff->location % REVERSE_APPLY], MAX_STRING_LENGTH );
+            strlcat( buf, " by '", MAX_STRING_LENGTH );
+            strlcat( buf, aff->modifier, MAX_STRING_LENGTH );
             if( aff->bitvector != -1 )
-               mudstrlcat( buf, "' and", MAX_STRING_LENGTH );
+               strlcat( buf, "' and", MAX_STRING_LENGTH );
             else
-               mudstrlcat( buf, "'", MAX_STRING_LENGTH );
+               strlcat( buf, "'", MAX_STRING_LENGTH );
          }
          if( aff->bitvector != -1 )
          {
-            mudstrlcat( buf, " applies ", MAX_STRING_LENGTH );
-            mudstrlcat( buf, a_flags[aff->bitvector], MAX_STRING_LENGTH );
+            strlcat( buf, " applies ", MAX_STRING_LENGTH );
+            strlcat( buf, a_flags[aff->bitvector], MAX_STRING_LENGTH );
          }
          if( aff->duration[0] != '\0' && aff->duration[0] != '0' )
          {
-            mudstrlcat( buf, " for '", MAX_STRING_LENGTH );
-            mudstrlcat( buf, aff->duration, MAX_STRING_LENGTH );
-            mudstrlcat( buf, "' rounds", MAX_STRING_LENGTH );
+            strlcat( buf, " for '", MAX_STRING_LENGTH );
+            strlcat( buf, aff->duration, MAX_STRING_LENGTH );
+            strlcat( buf, "' rounds", MAX_STRING_LENGTH );
          }
          if( aff->location >= REVERSE_APPLY )
-            mudstrlcat( buf, " (affects caster only)", MAX_STRING_LENGTH );
-         mudstrlcat( buf, "\r\n", MAX_STRING_LENGTH );
+            strlcat( buf, " (affects caster only)", MAX_STRING_LENGTH );
+         strlcat( buf, "\r\n", MAX_STRING_LENGTH );
          send_to_char( buf, ch );
 
          if( !aff->next )
@@ -1041,13 +1035,13 @@ void do_slookup( CHAR_DATA* ch, const char* argument)
             send_to_char( "--------------------------[CLASS USE]--------------------------\r\n", ch );
             for( iClass = 0; iClass < MAX_PC_CLASS; iClass++ )
             {
-               mudstrlcpy( buf, class_table[iClass]->who_name, MAX_STRING_LENGTH );
+               strlcpy( buf, class_table[iClass]->who_name, MAX_STRING_LENGTH );
                snprintf( buf + 3, MAX_STRING_LENGTH - 3, ") lvl: %3d max: %2d%%", skill->skill_level[iClass],
                          skill->skill_adept[iClass] );
                if( iClass % 3 == 2 )
-                  mudstrlcat( buf, "\r\n", MAX_STRING_LENGTH );
+                  strlcat( buf, "\r\n", MAX_STRING_LENGTH );
                else
-                  mudstrlcat( buf, "  ", MAX_STRING_LENGTH );
+                  strlcat( buf, "  ", MAX_STRING_LENGTH );
                send_to_char( buf, ch );
             }
          }
@@ -1061,23 +1055,22 @@ void do_slookup( CHAR_DATA* ch, const char* argument)
                if( !strcmp( race_table[iRace]->race_name, "unused" ) )
                   snprintf( buf, MAX_STRING_LENGTH, "                           " );
                if( ( iRace > 0 ) && ( iRace % 2 == 1 ) )
-                  mudstrlcat( buf, "\r\n", MAX_STRING_LENGTH );
+                  strlcat( buf, "\r\n", MAX_STRING_LENGTH );
                else
-                  mudstrlcat( buf, "  ", MAX_STRING_LENGTH );
+                  strlcat( buf, "  ", MAX_STRING_LENGTH );
                send_to_char( buf, ch );
             }
          }
       }
       send_to_char( "\r\n", ch );
    }
-   return;
 }
 
 /*
  * Set a skill's attributes or what skills a player has.
  * High god command, with support for creating skills/spells/herbs/etc
  */
-void do_sset( CHAR_DATA* ch, const char* argument)
+void do_sset( CHAR_DATA* ch, const char* argument )
 {
    char arg1[MAX_INPUT_LENGTH];
    char arg2[MAX_INPUT_LENGTH];
@@ -1174,9 +1167,9 @@ void do_sset( CHAR_DATA* ch, const char* argument)
       else  // add the skill. See db.c for why we are adding without sorting.
          skill_table[num_skills++] = skill;
       skill->min_mana = 0;
-      skill->name = str_dup( argument );
-      skill->noun_damage = str_dup( "" );
-      skill->msg_off = str_dup( "" );
+      skill->name = strdup( argument );
+      skill->noun_damage = strdup( "" );
+      skill->msg_off = strdup( "" );
       skill->spell_fun = spell_smaug;
       skill->type = type;
       skill->spell_sector = 0;
@@ -1342,14 +1335,14 @@ void do_sset( CHAR_DATA* ch, const char* argument)
             skill->skill_fun = dofun;
             skill->spell_fun = NULL;
             DISPOSE( skill->skill_fun_name );
-            skill->skill_fun_name = str_dup( argument );
+            skill->skill_fun_name = strdup( argument );
          }
          else if( ( spellfun = spell_function( argument ) ) != spell_notfound )
          {
             skill->spell_fun = spellfun;
             skill->skill_fun = NULL;
             DISPOSE( skill->skill_fun_name );
-            skill->spell_fun_name = str_dup( argument );
+            skill->spell_fun_name = strdup( argument );
          }
          else if( validate_spec_fun( argument ) )
          {
@@ -1513,7 +1506,7 @@ void do_sset( CHAR_DATA* ch, const char* argument)
             duration[0] = '\0';
          if( !str_cmp( modifier, "0" ) )
             modifier[0] = '\0';
-         aff->duration = str_dup( duration );
+         aff->duration = strdup( duration );
          aff->location = loc;
          if( loc == APPLY_AFFECT )
          {
@@ -1530,7 +1523,7 @@ void do_sset( CHAR_DATA* ch, const char* argument)
                modval = 0;
             snprintf( modifier, MAX_INPUT_LENGTH, "%d", modval );
          }
-         aff->modifier = str_dup( modifier );
+         aff->modifier = strdup( modifier );
          aff->bitvector = bit;
          LINK( aff, skill->first_affect, skill->last_affect, next, prev );
          send_to_char( "Ok.\r\n", ch );
@@ -1596,7 +1589,7 @@ void do_sset( CHAR_DATA* ch, const char* argument)
       if( !str_cmp( arg2, "name" ) )
       {
          DISPOSE( skill->name );
-         skill->name = str_dup( argument );
+         skill->name = strdup( argument );
          send_to_char( "Ok.\r\n", ch );
          return;
       }
@@ -1605,9 +1598,9 @@ void do_sset( CHAR_DATA* ch, const char* argument)
       {
          DISPOSE( skill->noun_damage );
          if( !str_cmp( argument, "clear" ) )
-            skill->noun_damage = str_dup( "" );
+            skill->noun_damage = strdup( "" );
          else
-            skill->noun_damage = str_dup( argument );
+            skill->noun_damage = strdup( argument );
          send_to_char( "Ok.\r\n", ch );
          return;
       }
@@ -1616,7 +1609,7 @@ void do_sset( CHAR_DATA* ch, const char* argument)
       {
          DISPOSE( skill->msg_off );
          if( str_cmp( argument, "clear" ) )
-            skill->msg_off = str_dup( argument );
+            skill->msg_off = strdup( argument );
          send_to_char( "Ok.\r\n", ch );
          return;
       }
@@ -1626,7 +1619,7 @@ void do_sset( CHAR_DATA* ch, const char* argument)
          if( skill->hit_char )
             DISPOSE( skill->hit_char );
          if( str_cmp( argument, "clear" ) )
-            skill->hit_char = str_dup( argument );
+            skill->hit_char = strdup( argument );
          send_to_char( "Ok.\r\n", ch );
          return;
       }
@@ -1636,7 +1629,7 @@ void do_sset( CHAR_DATA* ch, const char* argument)
          if( skill->hit_vict )
             DISPOSE( skill->hit_vict );
          if( str_cmp( argument, "clear" ) )
-            skill->hit_vict = str_dup( argument );
+            skill->hit_vict = strdup( argument );
          send_to_char( "Ok.\r\n", ch );
          return;
       }
@@ -1646,7 +1639,7 @@ void do_sset( CHAR_DATA* ch, const char* argument)
          if( skill->hit_room )
             DISPOSE( skill->hit_room );
          if( str_cmp( argument, "clear" ) )
-            skill->hit_room = str_dup( argument );
+            skill->hit_room = strdup( argument );
          send_to_char( "Ok.\r\n", ch );
          return;
       }
@@ -1656,7 +1649,7 @@ void do_sset( CHAR_DATA* ch, const char* argument)
          if( skill->hit_dest )
             DISPOSE( skill->hit_dest );
          if( str_cmp( argument, "clear" ) )
-            skill->hit_dest = str_dup( argument );
+            skill->hit_dest = strdup( argument );
          send_to_char( "Ok.\r\n", ch );
          return;
       }
@@ -1666,7 +1659,7 @@ void do_sset( CHAR_DATA* ch, const char* argument)
          if( skill->miss_char )
             DISPOSE( skill->miss_char );
          if( str_cmp( argument, "clear" ) )
-            skill->miss_char = str_dup( argument );
+            skill->miss_char = strdup( argument );
          send_to_char( "Ok.\r\n", ch );
          return;
       }
@@ -1676,7 +1669,7 @@ void do_sset( CHAR_DATA* ch, const char* argument)
          if( skill->miss_vict )
             DISPOSE( skill->miss_vict );
          if( str_cmp( argument, "clear" ) )
-            skill->miss_vict = str_dup( argument );
+            skill->miss_vict = strdup( argument );
          send_to_char( "Ok.\r\n", ch );
          return;
       }
@@ -1686,7 +1679,7 @@ void do_sset( CHAR_DATA* ch, const char* argument)
          if( skill->miss_room )
             DISPOSE( skill->miss_room );
          if( str_cmp( argument, "clear" ) )
-            skill->miss_room = str_dup( argument );
+            skill->miss_room = strdup( argument );
          send_to_char( "Ok.\r\n", ch );
          return;
       }
@@ -1696,7 +1689,7 @@ void do_sset( CHAR_DATA* ch, const char* argument)
          if( skill->die_char )
             DISPOSE( skill->die_char );
          if( str_cmp( argument, "clear" ) )
-            skill->die_char = str_dup( argument );
+            skill->die_char = strdup( argument );
          send_to_char( "Ok.\r\n", ch );
          return;
       }
@@ -1706,7 +1699,7 @@ void do_sset( CHAR_DATA* ch, const char* argument)
          if( skill->die_vict )
             DISPOSE( skill->die_vict );
          if( str_cmp( argument, "clear" ) )
-            skill->die_vict = str_dup( argument );
+            skill->die_vict = strdup( argument );
          send_to_char( "Ok.\r\n", ch );
          return;
       }
@@ -1716,7 +1709,7 @@ void do_sset( CHAR_DATA* ch, const char* argument)
          if( skill->die_room )
             DISPOSE( skill->die_room );
          if( str_cmp( argument, "clear" ) )
-            skill->die_room = str_dup( argument );
+            skill->die_room = strdup( argument );
          send_to_char( "Ok.\r\n", ch );
          return;
       }
@@ -1726,7 +1719,7 @@ void do_sset( CHAR_DATA* ch, const char* argument)
          if( skill->imm_char )
             DISPOSE( skill->imm_char );
          if( str_cmp( argument, "clear" ) )
-            skill->imm_char = str_dup( argument );
+            skill->imm_char = strdup( argument );
          send_to_char( "Ok.\r\n", ch );
          return;
       }
@@ -1736,7 +1729,7 @@ void do_sset( CHAR_DATA* ch, const char* argument)
          if( skill->imm_vict )
             DISPOSE( skill->imm_vict );
          if( str_cmp( argument, "clear" ) )
-            skill->imm_vict = str_dup( argument );
+            skill->imm_vict = strdup( argument );
          send_to_char( "Ok.\r\n", ch );
          return;
       }
@@ -1746,7 +1739,7 @@ void do_sset( CHAR_DATA* ch, const char* argument)
          if( skill->imm_room )
             DISPOSE( skill->imm_room );
          if( str_cmp( argument, "clear" ) )
-            skill->imm_room = str_dup( argument );
+            skill->imm_room = strdup( argument );
          send_to_char( "Ok.\r\n", ch );
          return;
       }
@@ -1756,7 +1749,7 @@ void do_sset( CHAR_DATA* ch, const char* argument)
          if( skill->dice )
             DISPOSE( skill->dice );
          if( str_cmp( argument, "clear" ) )
-            skill->dice = str_dup( argument );
+            skill->dice = strdup( argument );
          send_to_char( "Ok.\r\n", ch );
          return;
       }
@@ -1766,7 +1759,7 @@ void do_sset( CHAR_DATA* ch, const char* argument)
          if( skill->components )
             DISPOSE( skill->components );
          if( str_cmp( argument, "clear" ) )
-            skill->components = str_dup( argument );
+            skill->components = strdup( argument );
          send_to_char( "Ok.\r\n", ch );
          return;
       }
@@ -1776,7 +1769,7 @@ void do_sset( CHAR_DATA* ch, const char* argument)
          if( skill->teachers )
             DISPOSE( skill->teachers );
          if( str_cmp( argument, "clear" ) )
-            skill->teachers = str_dup( argument );
+            skill->teachers = strdup( argument );
          send_to_char( "Ok.\r\n", ch );
          return;
       }
@@ -2065,10 +2058,9 @@ void do_grapple( CHAR_DATA * ch, const char *argument )
       set_fighting( ch, victim );
    if( !victim->fighting && ch->in_room == victim->in_room )
       set_fighting( victim, ch );
-   return;
 }
 
-void do_gouge( CHAR_DATA* ch, const char* argument)
+void do_gouge( CHAR_DATA* ch, const char* argument )
 {
    CHAR_DATA *victim;
    AFFECT_DATA af;
@@ -2156,11 +2148,9 @@ void do_gouge( CHAR_DATA* ch, const char* argument)
       global_retcode = damage( ch, victim, 0, gsn_gouge );
       learn_from_failure( ch, gsn_gouge );
    }
-
-   return;
 }
 
-void do_detrap( CHAR_DATA* ch, const char* argument)
+void do_detrap( CHAR_DATA* ch, const char* argument )
 {
    char arg[MAX_INPUT_LENGTH];
    OBJ_DATA *obj;
@@ -2223,7 +2213,7 @@ void do_detrap( CHAR_DATA* ch, const char* argument)
 
          act( AT_ACTION, "You carefully begin your attempt to remove a trap from $p...", ch, obj, NULL, TO_CHAR );
          act( AT_ACTION, "$n carefully attempts to remove a trap from $p...", ch, obj, NULL, TO_ROOM );
-         ch->alloc_ptr = str_dup( obj->name );
+         ch->alloc_ptr = strdup( obj->name );
          add_timer( ch, TIMER_DO_FUN, 3, do_detrap, 1 );
 /*	    WAIT_STATE( ch, skill_table[gsn_detrap]->beats ); */
          return;
@@ -2235,7 +2225,7 @@ void do_detrap( CHAR_DATA* ch, const char* argument)
             bug( "%s: ch->alloc_ptr NULL!", __func__ );
             return;
          }
-         mudstrlcpy( arg, ch->alloc_ptr, MAX_INPUT_LENGTH );
+         strlcpy( arg, ch->alloc_ptr, MAX_INPUT_LENGTH );
          DISPOSE( ch->alloc_ptr );
          ch->alloc_ptr = NULL;
          ch->substate = SUB_NONE;
@@ -2290,10 +2280,9 @@ void do_detrap( CHAR_DATA* ch, const char* argument)
 
    send_to_char( "You successfully remove a trap.\r\n", ch );
    learn_from_success( ch, gsn_detrap );
-   return;
 }
 
-void do_dig( CHAR_DATA* ch, const char* argument)
+void do_dig( CHAR_DATA* ch, const char* argument )
 {
    char arg[MAX_INPUT_LENGTH];
    OBJ_DATA *obj;
@@ -2356,7 +2345,7 @@ void do_dig( CHAR_DATA* ch, const char* argument)
          }
 
          add_timer( ch, TIMER_DO_FUN, UMIN( skill_table[gsn_dig]->beats / 10, 3 ), do_dig, 1 );
-         ch->alloc_ptr = str_dup( arg );
+         ch->alloc_ptr = strdup( arg );
          send_to_char( "You begin digging...\r\n", ch );
          act( AT_PLAIN, "$n begins digging...", ch, NULL, NULL, TO_ROOM );
          return;
@@ -2369,7 +2358,7 @@ void do_dig( CHAR_DATA* ch, const char* argument)
             bug( "%s: alloc_ptr NULL", __func__ );
             return;
          }
-         mudstrlcpy( arg, ch->alloc_ptr, MAX_INPUT_LENGTH );
+         strlcpy( arg, ch->alloc_ptr, MAX_INPUT_LENGTH );
          DISPOSE( ch->alloc_ptr );
          break;
 
@@ -2463,11 +2452,9 @@ void do_dig( CHAR_DATA* ch, const char* argument)
    learn_from_success( ch, gsn_dig );
    if( obj->item_type == ITEM_CORPSE_PC || obj->item_type == ITEM_CORPSE_NPC )
       adjust_favor( ch, 14, 1 );
-
-   return;
 }
 
-void do_search( CHAR_DATA* ch, const char* argument)
+void do_search( CHAR_DATA* ch, const char* argument )
 {
    char arg[MAX_INPUT_LENGTH];
    OBJ_DATA *obj;
@@ -2511,7 +2498,7 @@ void do_search( CHAR_DATA* ch, const char* argument)
          }
          add_timer( ch, TIMER_DO_FUN, UMIN( skill_table[gsn_search]->beats / 10, 3 ), do_search, 1 );
          send_to_char( "You begin your search...\r\n", ch );
-         ch->alloc_ptr = str_dup( arg );
+         ch->alloc_ptr = strdup( arg );
          return;
 
       case 1:
@@ -2521,7 +2508,7 @@ void do_search( CHAR_DATA* ch, const char* argument)
             bug( "%s: alloc_ptr NULL", __func__ );
             return;
          }
-         mudstrlcpy( arg, ch->alloc_ptr, MAX_INPUT_LENGTH );
+         strlcpy( arg, ch->alloc_ptr, MAX_INPUT_LENGTH );
          DISPOSE( ch->alloc_ptr );
          break;
       case SUB_TIMER_DO_ABORT:
@@ -2589,10 +2576,9 @@ void do_search( CHAR_DATA* ch, const char* argument)
 
    send_to_char( "You find nothing.\r\n", ch );
    learn_from_failure( ch, gsn_search );
-   return;
 }
 
-void do_steal( CHAR_DATA* ch, const char* argument)
+void do_steal( CHAR_DATA* ch, const char* argument )
 {
    char buf[MAX_STRING_LENGTH];
    char arg1[MAX_INPUT_LENGTH];
@@ -2781,7 +2767,6 @@ void do_steal( CHAR_DATA* ch, const char* argument)
    send_to_char( "Ok.\r\n", ch );
    learn_from_success( ch, gsn_steal );
    adjust_favor( ch, 9, 1 );
-   return;
 }
 
 void do_pounce( CHAR_DATA * ch, const char *argument )
@@ -2865,10 +2850,9 @@ void do_pounce( CHAR_DATA * ch, const char *argument )
       global_retcode = damage( ch, victim, 0, gsn_pounce );
       check_illegal_pk( ch, victim );
    }
-   return;
 }
 
-void do_backstab( CHAR_DATA* ch, const char* argument)
+void do_backstab( CHAR_DATA* ch, const char* argument )
 {
    char arg[MAX_INPUT_LENGTH];
    CHAR_DATA *victim;
@@ -2958,10 +2942,9 @@ void do_backstab( CHAR_DATA* ch, const char* argument)
       global_retcode = damage( ch, victim, 0, gsn_backstab );
       check_illegal_pk( ch, victim );
    }
-   return;
 }
 
-void do_rescue( CHAR_DATA* ch, const char* argument)
+void do_rescue( CHAR_DATA* ch, const char* argument )
 {
    char arg[MAX_INPUT_LENGTH];
    CHAR_DATA *victim;
@@ -3060,7 +3043,6 @@ void do_rescue( CHAR_DATA* ch, const char* argument)
 
    set_fighting( ch, fch );
    set_fighting( fch, ch );
-   return;
 }
 
 void do_meditate( CHAR_DATA * ch, const char *argument )
@@ -3079,7 +3061,7 @@ void do_meditate( CHAR_DATA * ch, const char *argument )
          }
          send_to_char_color( "&BYou enter into a meditative state, hoping to collect mana from the cosmos.\n\r", ch );
          add_timer( ch, TIMER_DO_FUN, UMAX( 2, ( skill_table[gsn_meditate]->beats / 8 ) ), do_meditate, 1 );
-         ch->alloc_ptr = str_dup( argument );
+         ch->alloc_ptr = strdup( argument );
          return;
 
       case 1:
@@ -3089,7 +3071,7 @@ void do_meditate( CHAR_DATA * ch, const char *argument )
             bug( "%s: alloc_ptr NULL or not numeric", __func__ );
             return;
          }
-         arg = str_dup( ch->alloc_ptr );
+         arg = strdup( ch->alloc_ptr );
          DISPOSE( ch->alloc_ptr );
          break;
 
@@ -3160,14 +3142,13 @@ void do_meditate( CHAR_DATA * ch, const char *argument )
       TIMER *timer;
       timer = get_timerptr( ch, TIMER_DO_FUN );
       timer->count += UMAX( 2, ( skill_table[gsn_meditate]->beats / 8 ) );
-      ch->alloc_ptr = str_dup( arg );
+      ch->alloc_ptr = strdup( arg );
    }
    else
    {
       send_to_char_color( "&BYou complete your meditations.\r\n", ch );
       ch->substate = SUB_NONE;
    }
-   return;
 }
 
 void do_trance( CHAR_DATA * ch, const char *argument )
@@ -3186,7 +3167,7 @@ void do_trance( CHAR_DATA * ch, const char *argument )
          }
          send_to_char_color( "&BYou enter a peaceful trance, collecting mana from the cosmos.\r\n", ch );
          add_timer( ch, TIMER_DO_FUN, UMAX( 2, ( skill_table[gsn_trance]->beats / 8 ) ), do_trance, 1 );
-         ch->alloc_ptr = str_dup( argument );
+         ch->alloc_ptr = strdup( argument );
          return;
 
       case 1:
@@ -3196,7 +3177,7 @@ void do_trance( CHAR_DATA * ch, const char *argument )
             bug( "%s: alloc_ptr NULL or not numeric", __func__ );
             return;
          }
-         arg = str_dup( ch->alloc_ptr );
+         arg = strdup( ch->alloc_ptr );
          DISPOSE( ch->alloc_ptr );
          break;
 
@@ -3267,17 +3248,16 @@ void do_trance( CHAR_DATA * ch, const char *argument )
       TIMER *timer;
       timer = get_timerptr( ch, TIMER_DO_FUN );
       timer->count += UMAX( 2, ( skill_table[gsn_trance]->beats / 8 ) );
-      ch->alloc_ptr = str_dup( arg );
+      ch->alloc_ptr = strdup( arg );
    }
    else
    {
       send_to_char_color( "&BYou complete your trance.\r\n", ch );
       ch->substate = SUB_NONE;
    }
-   return;
 }
 
-void do_kick( CHAR_DATA* ch, const char* argument)
+void do_kick( CHAR_DATA* ch, const char* argument )
 {
    CHAR_DATA *victim;
 
@@ -3310,10 +3290,9 @@ void do_kick( CHAR_DATA* ch, const char* argument)
       learn_from_failure( ch, gsn_kick );
       global_retcode = damage( ch, victim, 0, gsn_kick );
    }
-   return;
 }
 
-void do_punch( CHAR_DATA* ch, const char* argument)
+void do_punch( CHAR_DATA* ch, const char* argument )
 {
    CHAR_DATA *victim;
 
@@ -3346,10 +3325,9 @@ void do_punch( CHAR_DATA* ch, const char* argument)
       learn_from_failure( ch, gsn_punch );
       global_retcode = damage( ch, victim, 0, gsn_punch );
    }
-   return;
 }
 
-void do_bite( CHAR_DATA* ch, const char* argument)
+void do_bite( CHAR_DATA* ch, const char* argument )
 {
    CHAR_DATA *victim;
 
@@ -3382,10 +3360,9 @@ void do_bite( CHAR_DATA* ch, const char* argument)
       learn_from_failure( ch, gsn_bite );
       global_retcode = damage( ch, victim, 0, gsn_bite );
    }
-   return;
 }
 
-void do_claw( CHAR_DATA* ch, const char* argument)
+void do_claw( CHAR_DATA* ch, const char* argument )
 {
    CHAR_DATA *victim;
 
@@ -3412,10 +3389,9 @@ void do_claw( CHAR_DATA* ch, const char* argument)
       learn_from_failure( ch, gsn_claw );
       global_retcode = damage( ch, victim, 0, gsn_claw );
    }
-   return;
 }
 
-void do_sting( CHAR_DATA* ch, const char* argument)
+void do_sting( CHAR_DATA* ch, const char* argument )
 {
    CHAR_DATA *victim;
 
@@ -3448,10 +3424,9 @@ void do_sting( CHAR_DATA* ch, const char* argument)
       learn_from_failure( ch, gsn_sting );
       global_retcode = damage( ch, victim, 0, gsn_sting );
    }
-   return;
 }
 
-void do_tail( CHAR_DATA* ch, const char* argument)
+void do_tail( CHAR_DATA* ch, const char* argument )
 {
    CHAR_DATA *victim;
 
@@ -3484,10 +3459,9 @@ void do_tail( CHAR_DATA* ch, const char* argument)
       learn_from_failure( ch, gsn_tail );
       global_retcode = damage( ch, victim, 0, gsn_tail );
    }
-   return;
 }
 
-void do_bash( CHAR_DATA* ch, const char* argument)
+void do_bash( CHAR_DATA* ch, const char* argument )
 {
    CHAR_DATA *victim;
    int schance;
@@ -3532,10 +3506,9 @@ void do_bash( CHAR_DATA* ch, const char* argument)
       learn_from_failure( ch, gsn_bash );
       global_retcode = damage( ch, victim, 0, gsn_bash );
    }
-   return;
 }
 
-void do_stun( CHAR_DATA* ch, const char* argument)
+void do_stun( CHAR_DATA* ch, const char* argument )
 {
    CHAR_DATA *victim;
    AFFECT_DATA af;
@@ -3618,10 +3591,9 @@ void do_stun( CHAR_DATA* ch, const char* argument)
       act( AT_SKILL, "You try to stun $N, but $E dodges out of the way.", ch, NULL, victim, TO_CHAR );
       act( AT_SKILL, "$n charges screaming at $N, but keeps going right on past.", ch, NULL, victim, TO_NOTVICT );
    }
-   return;
 }
 
-void do_bloodlet( CHAR_DATA* ch, const char* argument)
+void do_bloodlet( CHAR_DATA* ch, const char* argument )
 {
    OBJ_DATA *obj;
 
@@ -3659,10 +3631,9 @@ void do_bloodlet( CHAR_DATA* ch, const char* argument)
       act( AT_BLOOD, "$n slices open $s skin, but no blood is spilled...", ch, NULL, NULL, TO_ROOM );
       learn_from_failure( ch, gsn_bloodlet );
    }
-   return;
 }
 
-void do_feed( CHAR_DATA* ch, const char* argument)
+void do_feed( CHAR_DATA* ch, const char* argument )
 {
    CHAR_DATA *victim;
    short dam;
@@ -3733,7 +3704,6 @@ void do_feed( CHAR_DATA* ch, const char* argument)
          learn_from_failure( ch, gsn_feed );
       }
    }
-   return;
 }
 
 /*
@@ -3777,7 +3747,10 @@ void disarm( CHAR_DATA * ch, CHAR_DATA * victim )
    if( obj == get_eq_char( victim, WEAR_WIELD ) && ( tmpobj = get_eq_char( victim, WEAR_DUAL_WIELD ) ) != NULL )
       tmpobj->wear_loc = WEAR_WIELD;
 
+   oprog_remove_trigger( victim, obj );
+
    obj_from_char( obj );
+
    if( !IS_NPC( victim ) && CAN_PKILL( victim ) )
    {
       char buf[MAX_STRING_LENGTH];
@@ -3802,11 +3775,9 @@ void disarm( CHAR_DATA * ch, CHAR_DATA * victim )
    }
    else
       obj_to_room( obj, victim->in_room );
-
-   return;
 }
 
-void do_disarm( CHAR_DATA* ch, const char* argument)
+void do_disarm( CHAR_DATA* ch, const char* argument )
 {
    CHAR_DATA *victim;
    OBJ_DATA *obj;
@@ -3853,7 +3824,6 @@ void do_disarm( CHAR_DATA* ch, const char* argument)
       send_to_char( "You failed.\r\n", ch );
       learn_from_failure( ch, gsn_disarm );
    }
-   return;
 }
 
 /*
@@ -3890,7 +3860,6 @@ void trip( CHAR_DATA * ch, CHAR_DATA * victim )
       WAIT_STATE( victim, 2 * PULSE_VIOLENCE );
       victim->position = POS_RESTING;
    }
-   return;
 }
 
 /* Shargate, May 2002 */
@@ -3948,11 +3917,10 @@ void do_cleave( CHAR_DATA * ch, const char *argument )
       learn_from_failure( ch, gsn_cleave );
       global_retcode = damage( ch, victim, 0, gsn_cleave );
    }
-   return;
 }
 
 /* Converted to function well as a skill for vampires -- Blodkai */
-void do_mistwalk( CHAR_DATA* ch, const char* argument)
+void do_mistwalk( CHAR_DATA* ch, const char* argument )
 {
    char arg[MAX_INPUT_LENGTH];
    CHAR_DATA *victim;
@@ -4022,10 +3990,9 @@ void do_mistwalk( CHAR_DATA* ch, const char* argument)
    char_to_room( ch, victim->in_room );
    act( AT_DGREEN, "A cloud of glowing mist engulfs you, then withdraws to unveil $n!", ch, NULL, NULL, TO_ROOM );
    do_look( ch, "auto" );
-   return;
 }
 
-void do_broach( CHAR_DATA* ch, const char* argument)
+void do_broach( CHAR_DATA* ch, const char* argument )
 {
    char arg[MAX_INPUT_LENGTH];
    EXIT_DATA *pexit;
@@ -4076,10 +4043,9 @@ void do_broach( CHAR_DATA* ch, const char* argument)
       return;
    }
    send_to_char( "Your attempt fails.\r\n", ch );
-   return;
 }
 
-void do_pick( CHAR_DATA* ch, const char* argument)
+void do_pick( CHAR_DATA* ch, const char* argument )
 {
    char arg[MAX_INPUT_LENGTH];
    CHAR_DATA *gch;
@@ -4231,10 +4197,9 @@ void do_pick( CHAR_DATA* ch, const char* argument)
    }
 
    ch_printf( ch, "You see no %s here.\r\n", arg );
-   return;
 }
 
-void do_sneak( CHAR_DATA* ch, const char* argument)
+void do_sneak( CHAR_DATA* ch, const char* argument )
 {
    AFFECT_DATA af;
 
@@ -4265,11 +4230,9 @@ void do_sneak( CHAR_DATA* ch, const char* argument)
    }
    else
       learn_from_failure( ch, gsn_sneak );
-
-   return;
 }
 
-void do_hide( CHAR_DATA* ch, const char* argument)
+void do_hide( CHAR_DATA* ch, const char* argument )
 {
    if( IS_NPC( ch ) && IS_AFFECTED( ch, AFF_CHARM ) )
    {
@@ -4295,13 +4258,12 @@ void do_hide( CHAR_DATA* ch, const char* argument)
    }
    else
       learn_from_failure( ch, gsn_hide );
-   return;
 }
 
 /*
  * Contributed by Alander.
  */
-void do_visible( CHAR_DATA* ch, const char* argument)
+void do_visible( CHAR_DATA* ch, const char* argument )
 {
    affect_strip( ch, gsn_invis );
    affect_strip( ch, gsn_mass_invis );
@@ -4310,10 +4272,9 @@ void do_visible( CHAR_DATA* ch, const char* argument)
    xREMOVE_BIT( ch->affected_by, AFF_INVISIBLE );
    xREMOVE_BIT( ch->affected_by, AFF_SNEAK );
    send_to_char( "Ok.\r\n", ch );
-   return;
 }
 
-void do_recall( CHAR_DATA* ch, const char* argument)
+void do_recall( CHAR_DATA* ch, const char* argument )
 {
    ROOM_INDEX_DATA *location;
    CHAR_DATA *opponent;
@@ -4389,11 +4350,9 @@ void do_recall( CHAR_DATA* ch, const char* argument)
    }
    act( AT_ACTION, "$n appears in the room.", ch, NULL, NULL, TO_ROOM );
    do_look( ch, "auto" );
-
-   return;
 }
 
-void do_aid( CHAR_DATA* ch, const char* argument)
+void do_aid( CHAR_DATA* ch, const char* argument )
 {
    char arg[MAX_INPUT_LENGTH];
    CHAR_DATA *victim;
@@ -4466,10 +4425,9 @@ void do_aid( CHAR_DATA* ch, const char* argument)
 
    update_pos( victim );
    act( AT_SKILL, "$n aids you!", ch, NULL, victim, TO_VICT );
-   return;
 }
 
-void do_mount( CHAR_DATA* ch, const char* argument)
+void do_mount( CHAR_DATA* ch, const char* argument )
 {
    CHAR_DATA *victim;
 
@@ -4533,10 +4491,9 @@ void do_mount( CHAR_DATA* ch, const char* argument)
       act( AT_SKILL, "$n tries to mount you.", ch, NULL, victim, TO_VICT );
       learn_from_failure( ch, gsn_mount );
    }
-   return;
 }
 
-void do_dismount( CHAR_DATA* ch, const char* argument)
+void do_dismount( CHAR_DATA* ch, const char* argument )
 {
    CHAR_DATA *victim;
 
@@ -4568,12 +4525,9 @@ void do_dismount( CHAR_DATA* ch, const char* argument)
       ch->position = POS_SITTING;
       global_retcode = damage( ch, ch, 1, TYPE_UNDEFINED );
    }
-   return;
 }
 
-
 /**************************************************************************/
-
 
 /*
  * Check for parry.
@@ -4623,8 +4577,6 @@ bool check_parry( CHAR_DATA * ch, CHAR_DATA * victim )
    learn_from_success( victim, gsn_parry );
    return TRUE;
 }
-
-
 
 /*
  * Check for dodge.
@@ -4695,7 +4647,7 @@ bool check_tumble( CHAR_DATA * ch, CHAR_DATA * victim )
    return TRUE;
 }
 
-void do_poison_weapon( CHAR_DATA* ch, const char* argument)
+void do_poison_weapon( CHAR_DATA* ch, const char* argument )
 {
    OBJ_DATA *obj;
    OBJ_DATA *pobj;
@@ -4836,10 +4788,9 @@ void do_poison_weapon( CHAR_DATA* ch, const char* argument)
    extract_obj( pobj );
    extract_obj( wobj );
    learn_from_success( ch, gsn_poison_weapon );
-   return;
 }
 
-void do_scribe( CHAR_DATA* ch, const char* argument)
+void do_scribe( CHAR_DATA* ch, const char* argument )
 {
    OBJ_DATA *scroll;
    int sn;
@@ -4950,7 +4901,7 @@ void do_scribe( CHAR_DATA* ch, const char* argument)
    ch->mana -= mana;
 }
 
-void do_brew( CHAR_DATA* ch, const char* argument)
+void do_brew( CHAR_DATA* ch, const char* argument )
 {
    OBJ_DATA *potion;
    OBJ_DATA *fire;
@@ -5111,7 +5062,7 @@ bool check_grip( CHAR_DATA * ch, CHAR_DATA * victim )
    return TRUE;
 }
 
-void do_circle( CHAR_DATA* ch, const char* argument)
+void do_circle( CHAR_DATA* ch, const char* argument )
 {
    char arg[MAX_INPUT_LENGTH];
    CHAR_DATA *victim;
@@ -5195,11 +5146,10 @@ void do_circle( CHAR_DATA* ch, const char* argument)
       WAIT_STATE( ch, 2 * PULSE_VIOLENCE );
       global_retcode = damage( ch, victim, 0, gsn_circle );
    }
-   return;
 }
 
 /* Berserk and HitAll. -- Altrag */
-void do_berserk( CHAR_DATA* ch, const char* argument)
+void do_berserk( CHAR_DATA* ch, const char* argument )
 {
    short percent;
    AFFECT_DATA af;
@@ -5241,12 +5191,11 @@ void do_berserk( CHAR_DATA* ch, const char* argument)
    affect_to_char( ch, &af );
    send_to_char( "You start to lose control..\r\n", ch );
    learn_from_success( ch, gsn_berserk );
-   return;
 }
 
 /* External from fight.c */
-ch_ret one_hit args( ( CHAR_DATA * ch, CHAR_DATA * victim, int dt ) );
-void do_hitall( CHAR_DATA* ch, const char* argument)
+ch_ret one_hit( CHAR_DATA * ch, CHAR_DATA * victim, int dt );
+void do_hitall( CHAR_DATA* ch, const char* argument )
 {
    CHAR_DATA *vch;
    CHAR_DATA *vch_next;
@@ -5297,10 +5246,7 @@ void do_hitall( CHAR_DATA* ch, const char* argument)
       learn_from_success( ch, gsn_hitall );
    else
       learn_from_failure( ch, gsn_hitall );
-   return;
 }
-
-
 
 bool check_illegal_psteal( CHAR_DATA * ch, CHAR_DATA * victim )
 {
@@ -5327,7 +5273,7 @@ bool check_illegal_psteal( CHAR_DATA * ch, CHAR_DATA * victim )
    return FALSE;
 }
 
-void do_scan( CHAR_DATA* ch, const char* argument)
+void do_scan( CHAR_DATA* ch, const char* argument )
 {
    ROOM_INDEX_DATA *was_in_room;
    EXIT_DATA *pexit;
@@ -5458,10 +5404,7 @@ void do_scan( CHAR_DATA* ch, const char* argument)
    char_from_room( ch );
    char_to_room( ch, was_in_room );
    learn_from_success( ch, gsn_scan );
-
-   return;
 }
-
 
 /*
  * Basically the same guts as do_scan() from above (please keep them in
@@ -5578,7 +5521,6 @@ OBJ_DATA *find_projectile( CHAR_DATA * ch, int type )
 
    return NULL;
 }
-
 
 ch_ret spell_attack( int, int, CHAR_DATA *, void * );
 
@@ -6057,7 +5999,7 @@ ch_ret ranged_attack( CHAR_DATA * ch, const char *argument, OBJ_DATA * weapon, O
  * Support code (see projectile_hit(), quiver support, other changes to
  * fight.c, etc by Thoric.
  */
-void do_fire( CHAR_DATA* ch, const char* argument)
+void do_fire( CHAR_DATA* ch, const char* argument )
 {
    OBJ_DATA *arrow;
    OBJ_DATA *bow;
@@ -6129,8 +6071,6 @@ void do_fire( CHAR_DATA* ch, const char* argument)
     * handle the ranged attack 
     */
    ranged_attack( ch, argument, bow, arrow, TYPE_HIT + arrow->value[3], max_dist );
-
-   return;
 }
 
 /*
@@ -6238,7 +6178,7 @@ void do_throw( CHAR_DATA* ch, const char* argument)
     }
 }*/
 
-void do_slice( CHAR_DATA* ch, const char* argument)
+void do_slice( CHAR_DATA* ch, const char* argument )
 {
    OBJ_DATA *corpse;
    OBJ_DATA *obj;
@@ -6326,12 +6266,12 @@ void do_slice( CHAR_DATA* ch, const char* argument)
    obj_to_char( slice, ch );
    corpse->value[3] -= 25;
    learn_from_success( ch, gsn_slice );
-   return;
 }
 
 /*------------------------------------------------------------ 
  *  Fighting Styles - haus
- */ void do_style( CHAR_DATA * ch, const char *argument )
+ */
+void do_style( CHAR_DATA * ch, const char *argument )
 {
    char arg[MAX_INPUT_LENGTH];
 /*  char buf[MAX_INPUT_LENGTH];
@@ -6518,8 +6458,6 @@ void do_slice( CHAR_DATA* ch, const char* argument)
    }
 
    send_to_char( "Adopt which fighting style?\r\n", ch );
-
-   return;
 }
 
 /*  New check to see if you can use skills to support morphs --Shaddai */
@@ -6545,7 +6483,7 @@ bool can_use_skill( CHAR_DATA * ch, int percent, int gsn )
 /*
  * Cook was coded by Blackmane and heavily modified by Shaddai
  */
-void do_cook( CHAR_DATA* ch, const char* argument)
+void do_cook( CHAR_DATA* ch, const char* argument )
 {
    OBJ_DATA *food, *fire;
    char arg[MAX_INPUT_LENGTH];

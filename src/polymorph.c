@@ -156,8 +156,8 @@ char *class_string( int bitvector )
    for( x = 0; x < MAX_PC_CLASS; x++ )
       if( IS_SET( bitvector, 1 << x ) )
       {
-         mudstrlcat( buf, class_table[x]->who_name, MAX_STRING_LENGTH );
-         mudstrlcat( buf, " ", MAX_STRING_LENGTH );
+         strlcat( buf, class_table[x]->who_name, MAX_STRING_LENGTH );
+         strlcat( buf, " ", MAX_STRING_LENGTH );
       }
    if( ( x = strlen( buf ) ) > 0 )
       buf[--x] = '\0';
@@ -174,8 +174,8 @@ char *race_string( int bitvector )
    for( x = 0; x < MAX_PC_RACE; x++ )
       if( IS_SET( bitvector, 1 << x ) )
       {
-         mudstrlcat( buf, race_table[x]->race_name, MAX_STRING_LENGTH );
-         mudstrlcat( buf, " ", MAX_STRING_LENGTH );
+         strlcat( buf, race_table[x]->race_name, MAX_STRING_LENGTH );
+         strlcat( buf, " ", MAX_STRING_LENGTH );
       }
    if( ( x = strlen( buf ) ) > 0 )
       buf[--x] = '\0';
@@ -313,7 +313,6 @@ void fwrite_morph( FILE * fp, MORPH_DATA * morph )
    if( morph->no_cast )
       fprintf( fp, "NoCast          	%d\n", morph->no_cast );
    fprintf( fp, "%s", "End\n\n" );
-   return;
 }
 
 /*
@@ -335,7 +334,6 @@ void save_morphs( void )
       fwrite_morph( fp, morph );
    fprintf( fp, "%s", "#END\n" );
    FCLOSE( fp );
-   return;
 }
 
 /*
@@ -345,7 +343,7 @@ void save_morphs( void )
  *  as 1d2+10.  No boundry checks are in place yet on those, so care must
  *  be taken when using these.  --Shaddai
  */
-void do_morphset( CHAR_DATA* ch, const char* argument)
+void do_morphset( CHAR_DATA* ch, const char* argument )
 {
    char arg1[MAX_INPUT_LENGTH], arg2[MAX_INPUT_LENGTH], arg3[MAX_INPUT_LENGTH], buf[MAX_STRING_LENGTH];
    const char *origarg = argument;
@@ -422,8 +420,8 @@ void do_morphset( CHAR_DATA* ch, const char* argument)
       }
       if( !str_cmp( argument, "stat" ) )
       {
-         mudstrlcpy( buf, morph->name, MAX_STRING_LENGTH );
-         mudstrlcat( buf, " help", MAX_STRING_LENGTH );
+         strlcpy( buf, morph->name, MAX_STRING_LENGTH );
+         strlcat( buf, " help", MAX_STRING_LENGTH );
          do_morphstat( ch, buf );
          return;
       }
@@ -436,18 +434,20 @@ void do_morphset( CHAR_DATA* ch, const char* argument)
          return;
       }
    }
+
    if( morph )
    {
-      mudstrlcpy( arg1, morph->name, MAX_INPUT_LENGTH );
+      strlcpy( arg1, morph->name, MAX_INPUT_LENGTH );
       argument = one_argument( argument, arg2 );
-      mudstrlcpy( arg3, argument, MAX_INPUT_LENGTH );
+      strlcpy( arg3, argument, MAX_INPUT_LENGTH );
    }
    else
    {
       argument = one_argument( argument, arg1 );
       argument = one_argument( argument, arg2 );
-      mudstrlcpy( arg3, argument, MAX_INPUT_LENGTH );
+      strlcpy( arg3, argument, MAX_INPUT_LENGTH );
    }
+
    if( !str_cmp( arg1, "on" ) )
    {
       send_to_char( "Syntax: morphset <morph> on.\r\n", ch );
@@ -464,6 +464,7 @@ void do_morphset( CHAR_DATA* ch, const char* argument)
       send_to_char( "Morph data saved.\r\n", ch );
       return;
    }
+
    if( arg1[0] == '\0' || ( arg2[0] == '\0' && ch->substate != SUB_REPEATCMD ) || !str_cmp( arg1, "?" ) )
    {
       if( ch->substate == SUB_REPEATCMD )
@@ -506,6 +507,7 @@ void do_morphset( CHAR_DATA* ch, const char* argument)
          return;
       }
    }
+
    if( !str_cmp( arg2, "on" ) )
    {
       CHECK_SUBRESTRICTED( ch );
@@ -517,6 +519,7 @@ void do_morphset( CHAR_DATA* ch, const char* argument)
       ch->pcdata->subprompt = STRALLOC( buf );
       return;
    }
+   
    if( !str_cmp( arg2, "str" ) )
    {
       if( value < -10 || value > 10 )
@@ -745,21 +748,21 @@ void do_morphset( CHAR_DATA* ch, const char* argument)
       argument = one_argument( argument, arg3 );
       DISPOSE( morph->hit );
       if( str_cmp( arg3, "0" ) )
-         morph->hit = str_dup( arg3 );
+         morph->hit = strdup( arg3 );
    }
    else if( !str_cmp( arg2, "mana" ) )
    {
       argument = one_argument( argument, arg3 );
       DISPOSE( morph->mana );
       if( str_cmp( arg3, "0" ) )
-         morph->mana = str_dup( arg3 );
+         morph->mana = strdup( arg3 );
    }
    else if( !str_cmp( arg2, "move" ) )
    {
       argument = one_argument( argument, arg3 );
       DISPOSE( morph->move );
       if( str_cmp( arg3, "0" ) )
-         morph->move = str_dup( arg3 );
+         morph->move = strdup( arg3 );
    }
    else if( !str_cmp( arg2, "ac" ) )
    {
@@ -775,14 +778,14 @@ void do_morphset( CHAR_DATA* ch, const char* argument)
       argument = one_argument( argument, arg3 );
       DISPOSE( morph->hitroll );
       if( str_cmp( arg3, "0" ) )
-         morph->hitroll = str_dup( arg3 );
+         morph->hitroll = strdup( arg3 );
    }
    else if( !str_cmp( arg2, "damroll" ) )
    {
       argument = one_argument( argument, arg3 );
       DISPOSE( morph->damroll );
       if( str_cmp( arg3, "0" ) )
-         morph->damroll = str_dup( arg3 );
+         morph->damroll = strdup( arg3 );
    }
    else if( !str_cmp( arg2, "dodge" ) )
    {
@@ -1014,46 +1017,46 @@ void do_morphset( CHAR_DATA* ch, const char* argument)
    else if( !str_cmp( arg2, "short" ) )
    {
       DISPOSE( morph->short_desc );
-      morph->short_desc = str_dup( arg3 );
+      morph->short_desc = strdup( arg3 );
    }
    else if( !str_cmp( arg2, "morphother" ) )
    {
       DISPOSE( morph->morph_other );
-      morph->morph_other = str_dup( arg3 );
+      morph->morph_other = strdup( arg3 );
    }
    else if( !str_cmp( arg2, "morphself" ) )
    {
       DISPOSE( morph->morph_self );
-      morph->morph_self = str_dup( arg3 );
+      morph->morph_self = strdup( arg3 );
    }
    else if( !str_cmp( arg2, "unmorphother" ) )
    {
       DISPOSE( morph->unmorph_other );
-      morph->unmorph_other = str_dup( arg3 );
+      morph->unmorph_other = strdup( arg3 );
    }
    else if( !str_cmp( arg2, "unmorphself" ) )
    {
       DISPOSE( morph->unmorph_self );
-      morph->unmorph_self = str_dup( arg3 );
+      morph->unmorph_self = strdup( arg3 );
    }
    else if( !str_cmp( arg2, "keyword" ) )
    {
       DISPOSE( morph->key_words );
-      morph->key_words = str_dup( arg3 );
+      morph->key_words = strdup( arg3 );
    }
    else if( !str_cmp( arg2, "long" ) )
    {
       DISPOSE( morph->long_desc );
-      mudstrlcpy( buf, arg3, MAX_STRING_LENGTH );
-      mudstrlcat( buf, "\r\n", MAX_STRING_LENGTH );
-      morph->long_desc = str_dup( buf );
+      strlcpy( buf, arg3, MAX_STRING_LENGTH );
+      strlcat( buf, "\r\n", MAX_STRING_LENGTH );
+      morph->long_desc = strdup( buf );
    }
    else if( !str_cmp( arg2, "description" ) || !str_cmp( arg2, "desc" ) )
    {
       if( arg3[0] )
       {
          DISPOSE( morph->description );
-         morph->description = str_dup( arg3 );
+         morph->description = strdup( arg3 );
       }
       CHECK_SUBRESTRICTED( ch );
       if( ch->substate == SUB_REPEATCMD )
@@ -1068,14 +1071,14 @@ void do_morphset( CHAR_DATA* ch, const char* argument)
    else if( !str_cmp( arg2, "name" ) )
    {
       DISPOSE( morph->name );
-      morph->name = str_dup( arg3 );
+      morph->name = strdup( arg3 );
    }
    else if( !str_cmp( arg2, "help" ) )
    {
       if( arg3[0] )
       {
          DISPOSE( morph->help );
-         morph->help = str_dup( arg3 );
+         morph->help = strdup( arg3 );
       }
       CHECK_SUBRESTRICTED( ch );
       if( ch->substate == SUB_REPEATCMD )
@@ -1099,7 +1102,7 @@ void do_morphset( CHAR_DATA* ch, const char* argument)
       else
          snprintf( buf, MAX_STRING_LENGTH, "%s %s", morph->skills, arg3 );
       DISPOSE( morph->skills );
-      morph->skills = str_dup( buf );
+      morph->skills = strdup( buf );
    }
    else if( !str_cmp( arg2, "noskills" ) )
    {
@@ -1113,7 +1116,7 @@ void do_morphset( CHAR_DATA* ch, const char* argument)
       else
          snprintf( buf, MAX_STRING_LENGTH, "%s %s", morph->no_skills, arg3 );
       DISPOSE( morph->no_skills );
-      morph->no_skills = str_dup( buf );
+      morph->no_skills = strdup( buf );
    }
    else if( !str_cmp( arg2, "class" ) )
    {
@@ -1150,7 +1153,6 @@ void do_morphset( CHAR_DATA* ch, const char* argument)
       return;
    }
    send_to_char( "Done.\r\n", ch );
-   return;
 }
 
 /*
@@ -1158,7 +1160,7 @@ void do_morphset( CHAR_DATA* ch, const char* argument)
  *  To see the description and help file, must use morphstat <morph> help
  *  Shaddai
  */
-void do_morphstat( CHAR_DATA* ch, const char* argument)
+void do_morphstat( CHAR_DATA* ch, const char* argument )
 {
    MORPH_DATA *morph;
    char arg[MAX_INPUT_LENGTH];
@@ -1203,6 +1205,7 @@ void do_morphstat( CHAR_DATA* ch, const char* argument)
       send_to_pager( "No such morph exists.\r\n", ch );
       return;
    }
+
    if( !argument || argument[0] == '\0' )
    {
       pager_printf( ch, "  &cMorph Name: &C%-20s  Vnum: %4d\r\n", morph->name, morph->vnum );
@@ -1282,7 +1285,6 @@ void do_morphstat( CHAR_DATA* ch, const char* argument)
       send_to_char( "Syntax: morphstat <morph>\r\n", ch );
       send_to_char( "Syntax: morphstat <morph> <help/desc>\r\n", ch );
    }
-   return;
 }
 
 /*
@@ -1293,6 +1295,7 @@ void send_morph_message( CHAR_DATA * ch, MORPH_DATA * morph, bool is_morph )
 {
    if( morph == NULL )
       return;
+
    if( is_morph )
    {
       act( AT_MORPH, morph->morph_other, ch, NULL, NULL, TO_ROOM );
@@ -1303,7 +1306,6 @@ void send_morph_message( CHAR_DATA * ch, MORPH_DATA * morph, bool is_morph )
       act( AT_MORPH, morph->unmorph_other, ch, NULL, NULL, TO_ROOM );
       act( AT_MORPH, morph->unmorph_self, ch, NULL, NULL, TO_CHAR );
    }
-   return;
 }
 
 /*
@@ -1409,7 +1411,6 @@ void do_morph( CHAR_DATA * ch, MORPH_DATA * morph )
    REMOVE_BIT( ch->susceptible, morph->no_suscept );
    ch->morph = ch_morph;
    morph->used++;
-   return;
 }
 
 /*
@@ -1424,6 +1425,7 @@ int do_morph_char( CHAR_DATA * ch, MORPH_DATA * morph )
 
    if( ch->morph )
       canmorph = FALSE;
+
    if( morph->obj[0] )
    {
       if( !( obj = get_obj_vnum( ch, morph->obj[0] ) ) )
@@ -1438,6 +1440,7 @@ int do_morph_char( CHAR_DATA * ch, MORPH_DATA * morph )
          extract_obj( obj );
       }
    }
+
    if( morph->obj[1] )
    {
       if( !( obj = get_obj_vnum( ch, morph->obj[1] ) ) )
@@ -1452,6 +1455,7 @@ int do_morph_char( CHAR_DATA * ch, MORPH_DATA * morph )
          extract_obj( obj );
       }
    }
+
    if( morph->obj[2] )
    {
       if( !( obj = get_obj_vnum( ch, morph->obj[2] ) ) )
@@ -1547,6 +1551,7 @@ void do_unmorph( CHAR_DATA * ch )
    ch->hit -= morph->hit;
    ch->move -= morph->move;
    ch->mana -= morph->mana;
+
    /*
     * Added by Tarl 21 Mar 02 to fix polymorph massive mana bug 
     */
@@ -1558,7 +1563,6 @@ void do_unmorph( CHAR_DATA * ch )
    REMOVE_BIT( ch->susceptible, morph->suscept );
    DISPOSE( ch->morph );
    update_aris( ch );
-   return;
 }
 
 void do_unmorph_char( CHAR_DATA * ch )
@@ -1571,11 +1575,10 @@ void do_unmorph_char( CHAR_DATA * ch )
    temp = ch->morph->morph;
    do_unmorph( ch );
    send_morph_message( ch, temp, FALSE );
-   return;
 }
 
 /* Morph revert command ( God only knows why the Smaugers left this out ) - Samson 6-14-99 */
-void do_revert( CHAR_DATA* ch, const char* argument)
+void do_revert( CHAR_DATA* ch, const char* argument )
 {
    if( !ch->morph )
    {
@@ -1583,7 +1586,6 @@ void do_revert( CHAR_DATA* ch, const char* argument)
       return;
    }
    do_unmorph_char( ch );
-   return;
 }
 
 void setup_morph_vnum( void )
@@ -1594,6 +1596,7 @@ void setup_morph_vnum( void )
    for( morph = morph_start; morph; morph = morph->next )
       if( morph->vnum > vnum )
          vnum = morph->vnum;
+
    if( vnum < 1000 )
       vnum = 1000;
    else
@@ -1606,7 +1609,6 @@ void setup_morph_vnum( void )
          vnum++;
       }
    morph_vnum = vnum;
-   return;
 }
 
 /* 
@@ -1654,7 +1656,6 @@ void free_morph( MORPH_DATA * morph )
    if( morph->unmorph_self )
       DISPOSE( morph->unmorph_self );
    DISPOSE( morph );
-   return;
 }
 
 void free_morphs( void )
@@ -1668,7 +1669,6 @@ void free_morphs( void )
       UNLINK( morph, morph_start, morph_end, next, prev );
       free_morph( morph );
    }
-   return;
 }
 
 /*
@@ -1724,7 +1724,6 @@ void morph_defaults( MORPH_DATA * morph )
    morph->no_cast = FALSE;
    morph->timer = -1;
    morph->vnum = 0;
-   return;
 }
 
 /*
@@ -1747,7 +1746,7 @@ MORPH_DATA *fread_morph( FILE * fp )
    CREATE( morph, MORPH_DATA, 1 );
    morph_defaults( morph );
    DISPOSE( morph->name );
-   morph->name = str_dup( word );
+   morph->name = strdup( word );
 
    for( ;; )
    {
@@ -1974,7 +1973,6 @@ void load_morphs( void )
    }
    setup_morph_vnum(  );
    log_string( "Done." );
-   return;
 }
 
 /*
@@ -1982,23 +1980,23 @@ void load_morphs( void )
  */
 void copy_morph( MORPH_DATA * morph, MORPH_DATA * temp )
 {
-   morph->damroll = str_dup( temp->damroll );
-   morph->description = str_dup( temp->description );
-   morph->help = str_dup( temp->help );
-   morph->hit = str_dup( temp->hit );
-   morph->hitroll = str_dup( temp->hitroll );
-   morph->key_words = str_dup( temp->key_words );
-   morph->long_desc = str_dup( temp->long_desc );
-   morph->mana = str_dup( temp->mana );
-   morph->morph_other = str_dup( temp->morph_other );
-   morph->morph_self = str_dup( temp->morph_self );
-   morph->move = str_dup( temp->move );
-   morph->name = str_dup( temp->name );
-   morph->short_desc = str_dup( temp->short_desc );
-   morph->skills = str_dup( temp->skills );
-   morph->no_skills = str_dup( temp->no_skills );
-   morph->unmorph_other = str_dup( temp->unmorph_other );
-   morph->unmorph_self = str_dup( temp->unmorph_self );
+   morph->damroll = strdup( temp->damroll );
+   morph->description = strdup( temp->description );
+   morph->help = strdup( temp->help );
+   morph->hit = strdup( temp->hit );
+   morph->hitroll = strdup( temp->hitroll );
+   morph->key_words = strdup( temp->key_words );
+   morph->long_desc = strdup( temp->long_desc );
+   morph->mana = strdup( temp->mana );
+   morph->morph_other = strdup( temp->morph_other );
+   morph->morph_self = strdup( temp->morph_self );
+   morph->move = strdup( temp->move );
+   morph->name = strdup( temp->name );
+   morph->short_desc = strdup( temp->short_desc );
+   morph->skills = strdup( temp->skills );
+   morph->no_skills = strdup( temp->no_skills );
+   morph->unmorph_other = strdup( temp->unmorph_other );
+   morph->unmorph_self = strdup( temp->unmorph_self );
    morph->affected_by = temp->affected_by;
    morph->Class = temp->Class;
    morph->sex = temp->sex;
@@ -2046,13 +2044,12 @@ void copy_morph( MORPH_DATA * morph, MORPH_DATA * temp )
    morph->wis = temp->wis;
    morph->no_cast = temp->no_cast;
    morph->timer = temp->timer;
-   return;
 }
 
 /*
  * Player command to create a new morph
  */
-void do_morphcreate( CHAR_DATA* ch, const char* argument)
+void do_morphcreate( CHAR_DATA* ch, const char* argument )
 {
    MORPH_DATA *morph, *temp = NULL;
    char arg1[MAX_INPUT_LENGTH];
@@ -2086,17 +2083,20 @@ void do_morphcreate( CHAR_DATA* ch, const char* argument)
    CREATE( morph, MORPH_DATA, 1 );
    morph_defaults( morph );
    DISPOSE( morph->name );
+
    if( argument && argument[0] != '\0' && !str_cmp( argument, "copy" ) && temp )
       copy_morph( morph, temp );
    else
-      morph->name = str_dup( arg1 );
+      morph->name = strdup( arg1 );
+
    if( !morph->short_desc || morph->short_desc[0] == '\0' )
-      morph->short_desc = str_dup( arg1 );
+      morph->short_desc = strdup( arg1 );
+
    morph->vnum = morph_vnum;
    morph_vnum++;
+
    LINK( morph, morph_start, morph_end, next, prev );
    ch_printf( ch, "Morph %s created with vnum %d.\r\n", morph->name, morph->vnum );
-   return;
 }
 
 void unmorph_all( MORPH_DATA * morph )
@@ -2111,14 +2111,13 @@ void unmorph_all( MORPH_DATA * morph )
          continue;
       do_unmorph_char( vch );
    }
-   return;
 }
 
 /*
  * Player function to delete a morph. --Shaddai
  * NOTE Need to check all players and force them to unmorph first
  */
-void do_morphdestroy( CHAR_DATA* ch, const char* argument)
+void do_morphdestroy( CHAR_DATA* ch, const char* argument )
 {
    MORPH_DATA *morph;
 
@@ -2127,6 +2126,7 @@ void do_morphdestroy( CHAR_DATA* ch, const char* argument)
       send_to_char( "Destroy which morph?\r\n", ch );
       return;
    }
+
    if( is_number( argument ) )
       morph = get_morph_vnum( atoi( argument ) );
    else
@@ -2137,11 +2137,11 @@ void do_morphdestroy( CHAR_DATA* ch, const char* argument)
       ch_printf( ch, "Unkown morph %s.\r\n", argument );
       return;
    }
+
    unmorph_all( morph );
    UNLINK( morph, morph_start, morph_end, next, prev );
    free_morph( morph );
    send_to_char( "Morph deleted.\r\n", ch );
-   return;
 }
 
 void fwrite_morph_data( CHAR_DATA * ch, FILE * fp )
@@ -2222,7 +2222,6 @@ void fwrite_morph_data( CHAR_DATA * ch, FILE * fp )
    if( morph->wis != 0 )
       fprintf( fp, "Wisdom          %d\n", morph->wis );
    fprintf( fp, "%s", "End\n" );
-   return;
 }
 
 void clear_char_morph( CHAR_MORPH * morph )
@@ -2257,7 +2256,6 @@ void clear_char_morph( CHAR_MORPH * morph )
    morph->tumble = 0;
    morph->wis = 0;
    morph->morph = NULL;
-   return;
 }
 
 void fread_morph_data( CHAR_DATA * ch, FILE * fp )
@@ -2380,7 +2378,7 @@ void fread_morph_data( CHAR_DATA * ch, FILE * fp )
 /* 
  * Following functions are for immortal testing purposes.
  */
-void do_imm_morph( CHAR_DATA* ch, const char* argument)
+void do_imm_morph( CHAR_DATA* ch, const char* argument )
 {
    MORPH_DATA *morph;
    CHAR_DATA *victim = NULL;
@@ -2408,6 +2406,7 @@ void do_imm_morph( CHAR_DATA* ch, const char* argument)
       ch_printf( ch, "No such morph %d exists.\r\n", vnum );
       return;
    }
+
    if( !argument || argument[0] == '\0' )
       do_morph_char( ch, morph );
    else if( !( victim = get_char_world( ch, argument ) ) )
@@ -2415,6 +2414,7 @@ void do_imm_morph( CHAR_DATA* ch, const char* argument)
       send_to_char( "No one like that in all the realms.\r\n", ch );
       return;
    }
+
    if( victim != NULL && get_trust( ch ) < get_trust( victim ) && !IS_NPC( victim ) )
    {
       send_to_char( "You can't do that!\r\n", ch );
@@ -2422,14 +2422,14 @@ void do_imm_morph( CHAR_DATA* ch, const char* argument)
    }
    else if( victim != NULL )
       do_morph_char( victim, morph );
+
    send_to_char( "Done.\r\n", ch );
-   return;
 }
 
 /*
  * This is just a wrapper.  --Shaddai
  */
-void do_imm_unmorph( CHAR_DATA* ch, const char* argument)
+void do_imm_unmorph( CHAR_DATA* ch, const char* argument )
 {
    CHAR_DATA *victim = NULL;
 
@@ -2440,6 +2440,7 @@ void do_imm_unmorph( CHAR_DATA* ch, const char* argument)
       send_to_char( "No one like that in all the realms.\r\n", ch );
       return;
    }
+
    if( victim != NULL && get_trust( ch ) < get_trust( victim ) && !IS_NPC( victim ) )
    {
       send_to_char( "You can't do that!\r\n", ch );
@@ -2447,12 +2448,12 @@ void do_imm_unmorph( CHAR_DATA* ch, const char* argument)
    }
    else if( victim != NULL )
       do_unmorph_char( victim );
+
    send_to_char( "Done.\r\n", ch );
-   return;
 }
 
 /* Added by Samson 6-13-99 - lists available polymorph forms */
-void do_morphlist( CHAR_DATA* ch, const char* argument)
+void do_morphlist( CHAR_DATA* ch, const char* argument )
 {
    MORPH_DATA *morph;
 
@@ -2465,5 +2466,4 @@ void do_morphlist( CHAR_DATA* ch, const char* argument)
          continue;
       pager_printf( ch, "&G%-5d  &Y%s\r\n", morph->vnum, morph->name );
    }
-   return;
 }

@@ -67,15 +67,6 @@ Log         0
 End
 
 #COMMAND
-Name        gohome~
-Code        do_gohome
-Position    104
-Level       5
-Log         0
-Flags       1
-End
-
-#COMMAND
 Name        homebuy~
 Code        do_homebuy
 Position    104
@@ -417,20 +408,20 @@ Flags       4
 End
 
 #COMMAND
-Name        chess~
-Code        do_chess
-Position    100
-Level       10
-Log         0
-End
-
-#COMMAND
 Name        cast~
 Code        do_cast
 Position    104
 Level       0
 Log         0
 Flags       5
+End
+
+#COMMAND
+Name        cache~
+Code        do_cache
+Position    100
+Level       63
+Log         0
 End
 
 #COMMAND
@@ -488,6 +479,14 @@ Name        clans~
 Code        do_clans
 Position    100
 Level       0
+Log         0
+End
+
+#COMMAND
+Name        chess~
+Code        do_chess
+Position    100
+Level       10
 Log         0
 End
 
@@ -1080,6 +1079,15 @@ Position    100
 Level       51
 Log         0
 Flags       4
+End
+
+#COMMAND
+Name        gohome~
+Code        do_gohome
+Position    104
+Level       5
+Log         0
+Flags       1
 End
 
 #COMMAND

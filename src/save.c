@@ -27,9 +27,9 @@
 
 /*
  * Increment with every major format change.
- * Upped to 5 for addition of new Age Setup. -Kayle 1/22/08
+ * Upped to 5 for addition of new Age Setup. - Kayle 1/22/08
  */
-#define SAVEVERSION 5
+const int SAVEVERSION = 5;
 
 /*
  * Array to keep track of equipment temporarily. - Thoric
@@ -359,7 +359,6 @@ void save_char_obj( CHAR_DATA * ch )
 
    quitting_char = NULL;
    saving_char = NULL;
-   return;
 }
 
 /*
@@ -604,12 +603,7 @@ void fwrite_char( CHAR_DATA * ch, FILE * fp )
       fprintf( fp, "\n" );
    }
 
-#ifdef IMC
-   imc_savechar( ch, fp );
-#endif
-
    fprintf( fp, "End\n\n" );
-   return;
 }
 
 /*
@@ -666,6 +660,7 @@ void fwrite_obj( CHAR_DATA * ch, OBJ_DATA * obj, FILE * fp, int iNest, short os_
     */
    fprintf( fp, ( os_type == OS_CORPSE ? "#CORPSE\n" : "#OBJECT\n" ) );
 
+   fprintf( fp, "Version      %d\n", SAVEVERSION );
    if( iNest )
       fprintf( fp, "Nest         %d\n", iNest );
    if( obj->count > 1 )
@@ -690,6 +685,7 @@ void fwrite_obj( CHAR_DATA * ch, OBJ_DATA * obj, FILE * fp, int iNest, short os_
       fprintf( fp, "ExtraFlags   %s\n", print_bitvector( &obj->extra_flags ) );
    if( obj->wear_flags != obj->pIndexData->wear_flags )
       fprintf( fp, "WearFlags    %d\n", obj->wear_flags );
+
    wear_loc = WEAR_NONE;
    for( wear = 0; wear < MAX_WEAR && wear_loc == WEAR_NONE; wear++ )
    {
@@ -782,8 +778,6 @@ void fwrite_obj( CHAR_DATA * ch, OBJ_DATA * obj, FILE * fp, int iNest, short os_
 
    if( obj->first_content )
       fwrite_obj( ch, obj->last_content, fp, iNest + 1, OS_CARRY, hotboot );
-
-   return;
 }
 
 /*
@@ -855,10 +849,6 @@ bool load_char_obj( DESCRIPTOR_DATA * d, char *name, bool preload, bool copyover
    ch->morph = NULL;
    ch->pcdata->hotboot = FALSE;  /* Never changed except when PC is saved during hotboot save */
 
-#ifdef IMC
-   imc_initchar( ch );
-#endif
-
    found = FALSE;
    snprintf( strsave, MAX_INPUT_LENGTH, "%s%c/%s", PLAYER_DIR, tolower( name[0] ), capitalize( name ) );
    if( stat( strsave, &fst ) != -1 )
@@ -890,7 +880,7 @@ bool load_char_obj( DESCRIPTOR_DATA * d, char *name, bool preload, bool copyover
        * Cheat so that bug will show line #'s -- Altrag 
        */
       fpArea = fp;
-      mudstrlcpy( strArea, strsave, MAX_INPUT_LENGTH );
+      strlcpy( strArea, strsave, MAX_INPUT_LENGTH );
       for( ;; )
       {
          char letter;
@@ -947,7 +937,7 @@ bool load_char_obj( DESCRIPTOR_DATA * d, char *name, bool preload, bool copyover
       }
       FCLOSE( fp );
       fpArea = NULL;
-      mudstrlcpy( strArea, "$", MAX_INPUT_LENGTH );
+      strlcpy( strArea, "$", MAX_INPUT_LENGTH );
    }
 
    if( !found )
@@ -964,13 +954,13 @@ bool load_char_obj( DESCRIPTOR_DATA * d, char *name, bool preload, bool copyover
       ch->pcdata->deity_name = STRALLOC( "" );
       ch->pcdata->deity = NULL;
       ch->pcdata->pet = NULL;
-      ch->pcdata->pwd = str_dup( "" );
-      ch->pcdata->bamfin = str_dup( "" );
-      ch->pcdata->bamfout = str_dup( "" );
-      ch->pcdata->rank = str_dup( "" );
-      ch->pcdata->bestowments = str_dup( "" );
+      ch->pcdata->pwd = strdup( "" );
+      ch->pcdata->bamfin = strdup( "" );
+      ch->pcdata->bamfout = strdup( "" );
+      ch->pcdata->rank = strdup( "" );
+      ch->pcdata->bestowments = strdup( "" );
       ch->pcdata->title = STRALLOC( "" );
-      ch->pcdata->homepage = str_dup( "" );
+      ch->pcdata->homepage = strdup( "" );
       ch->pcdata->bio = STRALLOC( "" );
       ch->pcdata->authed_by = STRALLOC( "" );
       ch->pcdata->prompt = STRALLOC( "" );
@@ -1467,10 +1457,6 @@ void fread_char( CHAR_DATA * ch, FILE * fp, bool preload, bool copyover )
             }
             KEY( "IllegalPK", ch->pcdata->illegal_pk, fread_number( fp ) );
             KEY( "Immune", ch->immune, fread_number( fp ) );
-#ifdef IMC
-            if( ( fMatch = imc_loadchar( ch, fp, word ) ) )
-               break;
-#endif
             break;
 
          case 'K':
@@ -1780,21 +1766,21 @@ void fread_char( CHAR_DATA * ch, FILE * fp, bool preload, bool copyover )
                if( !ch->description )
                   ch->description = STRALLOC( "" );
                if( !ch->pcdata->pwd )
-                  ch->pcdata->pwd = str_dup( "" );
+                  ch->pcdata->pwd = strdup( "" );
                if( !ch->pcdata->bamfin )
-                  ch->pcdata->bamfin = str_dup( "" );
+                  ch->pcdata->bamfin = strdup( "" );
                if( !ch->pcdata->bamfout )
-                  ch->pcdata->bamfout = str_dup( "" );
+                  ch->pcdata->bamfout = strdup( "" );
                if( !ch->pcdata->bio )
                   ch->pcdata->bio = STRALLOC( "" );
                if( !ch->pcdata->rank )
-                  ch->pcdata->rank = str_dup( "" );
+                  ch->pcdata->rank = strdup( "" );
                if( !ch->pcdata->bestowments )
-                  ch->pcdata->bestowments = str_dup( "" );
+                  ch->pcdata->bestowments = strdup( "" );
                if( !ch->pcdata->title )
                   ch->pcdata->title = STRALLOC( "" );
                if( !ch->pcdata->homepage )
-                  ch->pcdata->homepage = str_dup( "" );
+                  ch->pcdata->homepage = strdup( "" );
                if( !ch->pcdata->authed_by )
                   ch->pcdata->authed_by = STRALLOC( "" );
                if( !ch->pcdata->prompt )
@@ -1958,7 +1944,7 @@ void fread_obj( CHAR_DATA * ch, FILE * fp, short os_type )
 {
    OBJ_DATA *obj;
    const char *word;
-   int iNest;
+   int iNest, obj_file_ver = 0;
    bool fMatch, fNest, fVnum;
    ROOM_INDEX_DATA *room = NULL;
 
@@ -2060,6 +2046,9 @@ void fread_obj( CHAR_DATA * ch, FILE * fp, short os_type )
 
             if( !strcmp( word, "End" ) )
             {
+               if( obj_file_ver == 0 )
+                  ; // Do nothing. This is just to keep GCC quiet.
+
                if( obj->item_type == ITEM_HOUSEKEY )
                {
                   if( !check_owner( obj ) )
@@ -2307,6 +2296,8 @@ void fread_obj( CHAR_DATA * ch, FILE * fp, short os_type )
                fMatch = TRUE;
                break;
             }
+
+            KEY( "Version", obj_file_ver, fread_number( fp ) );
             break;
 
          case 'W':
@@ -2360,7 +2351,7 @@ void set_alarm( long seconds )
 /*
  * Based on last time modified, show when a player was last on	-Thoric
  */
-void do_last( CHAR_DATA* ch, const char* argument)
+void do_last( CHAR_DATA* ch, const char* argument )
 {
    char buf[MAX_STRING_LENGTH];
    char arg[MAX_INPUT_LENGTH];
@@ -2373,7 +2364,7 @@ void do_last( CHAR_DATA* ch, const char* argument)
       send_to_char( "Usage: last <playername>\r\n", ch );
       return;
    }
-   mudstrlcpy( name, capitalize( arg ), MAX_INPUT_LENGTH );
+   strlcpy( name, capitalize( arg ), MAX_INPUT_LENGTH );
    snprintf( buf, MAX_STRING_LENGTH, "%s%c/%s", PLAYER_DIR, tolower( arg[0] ), name );
    if( stat( buf, &fst ) != -1 && check_parse_name( capitalize( name ), FALSE ) )
       ch_printf( ch, "%s was last on: %s\r", name, ctime( &fst.st_mtime ) );
@@ -2434,7 +2425,6 @@ void write_corpses( CHAR_DATA * ch, const char *name, OBJ_DATA * objrem )
       snprintf( buf, 127, "%s%s", CORPSE_DIR, capitalize( name ) );
       remove( buf );
    }
-   return;
 }
 
 void load_corpses( void )
@@ -2499,19 +2489,18 @@ void load_corpses( void )
    cfp = NULL;
    closedir( dp );
    falling = 0;
-   return;
 }
 
 /*
- * This will write one mobile structure pointed to be fp --Shaddai
+ * This will write one mobile structure pointed to by fp --Shaddai
  */
-
 void fwrite_mobile( FILE * fp, CHAR_DATA * mob )
 {
    if( !IS_NPC( mob ) || !fp )
       return;
    de_equip_char( mob );
    fprintf( fp, "#MOBILE\n" );
+   fprintf( fp, "Version %d\n", SAVEVERSION );
    fprintf( fp, "Vnum	%d\n", mob->pIndexData->vnum );
    if( mob->in_room )
       fprintf( fp, "Room	%d\n",
@@ -2531,7 +2520,6 @@ void fwrite_mobile( FILE * fp, CHAR_DATA * mob )
       fwrite_obj( mob, mob->last_carrying, fp, 0, OS_CARRY, FALSE );
    fprintf( fp, "EndMobile\n" );
    re_equip_char( mob );
-   return;
 }
 
 /*
@@ -2542,7 +2530,7 @@ CHAR_DATA *fread_mobile( FILE * fp )
    CHAR_DATA *mob = NULL;
    const char *word;
    bool fMatch;
-   int inroom = 0;
+   int inroom = 0, mob_file_ver = 0;
    ROOM_INDEX_DATA *pRoomIndex = NULL;
 
    word = ( feof( fp ) ? "EndMobile" : fread_word( fp ) );
@@ -2646,6 +2634,9 @@ CHAR_DATA *fread_mobile( FILE * fp )
          case 'E':
             if( !str_cmp( word, "EndMobile" ) )
             {
+               if( mob_file_ver == 0 )
+                  ; // Do nothing. This is just to keep GCC quiet.
+
                if( inroom == 0 )
                   inroom = ROOM_VNUM_TEMPLE;
                pRoomIndex = get_room_index( inroom );
@@ -2701,7 +2692,12 @@ CHAR_DATA *fread_mobile( FILE * fp )
                break;
             }
             break;
+
+         case 'V':
+            KEY( "Version", mob_file_ver, fread_number( fp ) );
+            break;
       }
+
       if( !fMatch )
       {
          bug( "%s: no match: %s", __func__, word );
@@ -2730,7 +2726,6 @@ void write_char_mobile( CHAR_DATA * ch, char *argument )
    xSET_BIT( mob->affected_by, AFF_CHARM );
    fwrite_mobile( fp, mob );
    FCLOSE( fp );
-   return;
 }
 
 /*
@@ -2751,5 +2746,4 @@ void read_char_mobile( char *argument )
    if( !mob )
       bug( "%s: failed to fread_mobile.", __func__ );
    FCLOSE( fp );
-   return;
 }

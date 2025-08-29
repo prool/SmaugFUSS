@@ -178,7 +178,7 @@ bool check_immortal_domain( CHAR_DATA * ch, const char *host )
       return FALSE;
 }
 
-void do_add_imm_host( CHAR_DATA* ch, const char* argument)
+void do_add_imm_host( CHAR_DATA* ch, const char* argument )
 {
    char type[MAX_INPUT_LENGTH];
    char arg1[MAX_INPUT_LENGTH];
@@ -287,8 +287,8 @@ void do_add_imm_host( CHAR_DATA* ch, const char* argument)
          }
       }
       CREATE( host, IMMORTAL_HOST, 1 );
-      host->name = str_dup( arg1 );
-      host->host = str_dup( name );
+      host->name = strdup( arg1 );
+      host->host = strdup( name );
       host->prefix = prefix;
       host->suffix = suffix;
       LINK( host, immortal_host_start, immortal_host_end, next, prev );
@@ -301,7 +301,6 @@ void do_add_imm_host( CHAR_DATA* ch, const char* argument)
       return;
    }
    send_to_char( "Done.\r\n", ch );
-   return;
 }
 
 void do_write_imm_host( void )
@@ -335,5 +334,4 @@ void do_write_imm_host( void )
    }
    fprintf( fp, "#END\n" );
    FCLOSE( fp );
-   return;
 }

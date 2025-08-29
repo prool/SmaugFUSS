@@ -107,7 +107,6 @@ void InitializeWeatherMap( void )
 {
    int x, y;
 
-
    for( y = 0; y < WEATHER_SIZE_Y; y++ )
    {
       for( x = 0; x < WEATHER_SIZE_X; x++ )
@@ -749,8 +748,8 @@ void CalculateCellToCellChanges( void )
    /*
    *  Randomly pick a cell to apply a random change to prevent equilibrium
    */
-   x = number_range( 0, WEATHER_SIZE_X );
-   y = number_range( 0, WEATHER_SIZE_Y );
+   x = number_range( 0, WEATHER_SIZE_X - 1 );
+   y = number_range( 0, WEATHER_SIZE_Y - 1 );
 
    struct    WeatherCell *randcell = &weatherMap[x][y]; // Weather Cell
    rand = number_range( -10, 10 );
@@ -930,7 +929,6 @@ void EnforceClimateConditions( void )
    {
       for( x = 0; x < WEATHER_SIZE_X; x++ )
       {
-
          struct	WeatherCell *cell = &weatherMap[x][y];    //  Weather cell
          struct	WeatherCell *delta = &weatherDelta[x][y];
 
@@ -2281,7 +2279,6 @@ void save_weathermap( void )
    }
    fprintf( fp, "\n#END\n\n" );
    FCLOSE( fp );
-   return;
 }
 
 void fread_cell( FILE * fp, int x, int y )
@@ -2377,6 +2374,7 @@ void fread_cell( FILE * fp, int x, int y )
          }
          break;
       }
+
       if( !fMatch )
       {
          bug( "%s: no match for %s", __func__, word );
@@ -2399,6 +2397,7 @@ bool load_weathermap( void )
       bug( "%s: cannot open %s for reading", __func__, filename );
       return FALSE;
    }
+
    for( ;; )
    {
       char letter = fread_letter( fp );
@@ -2422,6 +2421,7 @@ bool load_weathermap( void )
          version = fread_number( fp );
          continue;
       }
+
       if( !str_cmp( word, "CELL" ) ) 
       { 
          x = fread_number( fp );
@@ -2705,7 +2705,6 @@ bool isHighPressure( int pressure )
    else 
       return FALSE;
 }
-
 
 bool isLowPressure( int pressure )
 {
@@ -3043,7 +3042,7 @@ bool isGaleForceWindS( int windy )
       return FALSE;
 } 
 
-void do_setweather( CHAR_DATA* ch, const char* argument)
+void do_setweather( CHAR_DATA* ch, const char* argument )
 {
    char arg[MIL], arg2[MIL], arg3[MIL], arg4[MIL];
    int value, x, y;
@@ -3083,15 +3082,15 @@ void do_setweather( CHAR_DATA* ch, const char* argument)
    x = atoi( arg );
    y = atoi( arg2 );
 
-   if( x < 0 || x > WEATHER_SIZE_X )
+   if( x < 0 || x >= WEATHER_SIZE_X )
    {
-      ch_printf( ch, "X value must be between 0 and %d.\r\n", WEATHER_SIZE_X );
+      ch_printf( ch, "X value must be between 0 and %d.\r\n", WEATHER_SIZE_X - 1 );
       return;
    }
 
-   if( y < 0 || y > WEATHER_SIZE_Y )
+   if( y < 0 || y >= WEATHER_SIZE_Y )
    {
-      ch_printf( ch, "Y value must be between 0 and %d.\r\n", WEATHER_SIZE_Y );
+      ch_printf( ch, "Y value must be between 0 and %d.\r\n", WEATHER_SIZE_Y - 1 );
       return;
    }
 
@@ -3146,11 +3145,10 @@ void do_setweather( CHAR_DATA* ch, const char* argument)
       send_to_char( " See Help Climates for information on each.\r\n", ch );
       send_to_char( "Hemisphere value being:\r\n", ch );
       send_to_char( "  northern southern\r\n", ch );
-      return;
    }
 }
 
-void do_showweather( CHAR_DATA* ch, const char* argument)
+void do_showweather( CHAR_DATA* ch, const char* argument )
 {
    char arg[MIL], arg2[MIL];
    int x, y;
@@ -3207,7 +3205,7 @@ void do_showweather( CHAR_DATA* ch, const char* argument)
    ch_printf_color( ch, "&WWind Speed YAxis:  &w%d&D\r\n", cell->windSpeedY );
 }
 
-void do_weather( CHAR_DATA* ch, const char* argument)
+void do_weather( CHAR_DATA* ch, const char* argument )
 {
    struct WeatherCell *cell = getWeatherCell( ch->in_room->area );
 

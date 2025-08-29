@@ -16,6 +16,7 @@
  ****************************************************************************/
 
 #include <stdio.h>
+#include <string.h>
 #include <ctype.h>
 #include "mud.h"
 #include "hint.h"
@@ -77,7 +78,7 @@ const char *get_hint( int level )
                ++count;
             if( count == which )
             {
-               mudstrlcpy( buf, hintData->text, MAX_STRING_LENGTH );
+               strlcpy( buf, hintData->text, MAX_STRING_LENGTH );
                return buf;
             }
          }
@@ -88,7 +89,7 @@ const char *get_hint( int level )
          {
             if( level >= hintData->low && level <= hintData->high )
             {
-               mudstrlcpy( buf, hintData->text, MAX_STRING_LENGTH );
+               strlcpy( buf, hintData->text, MAX_STRING_LENGTH );
                return buf;
             }
          }
@@ -126,7 +127,7 @@ void write_hint( void )
    }
 }
 
-void do_hintedit( CHAR_DATA* ch, const char* argument)
+void do_hintedit( CHAR_DATA* ch, const char* argument )
 {
    char arg[MAX_STRING_LENGTH];
    char arg2[MAX_STRING_LENGTH];
@@ -398,6 +399,4 @@ void load_hint( void )
 
    while( ( hintData = read_hint( filename, fp ) ) != NULL )
       LINK( hintData, first_hint, last_hint, next, prev );
-
-   return;
 }

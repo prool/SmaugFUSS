@@ -15,15 +15,18 @@ EXPORT_SYMBOLS = -export-dynamic
 #SOLARIS_FLAG = -Dsun -DSYSV
 #SOLARIS_LINK = -lnsl -lsocket
 
-#IMC2 - Comment out to disable IMC2 support
-IMC = 1
+#Memory debugging flags. Cygwin lacks libasan support required for this to work.
+ifndef CYGWIN
+M_FLAGS = -fsanitize=address -fsanitize=leak -fno-omit-frame-pointer
+endif
 
-W_FLAGS = -std=c++1z -Wall -Wshadow -Wformat-security -Wpointer-arith -Wcast-align -Wredundant-decls -fsanitize=address
+W_FLAGS = -std=c++1z -Wall -Wshadow -Wformat-security -Wpointer-arith -Wcast-align -Wredundant-decls
 
-C_FLAGS = -g2 $(W_FLAGS) $(SOLARIS_FLAG) $(PROF) $(EXPORT_SYMBOLS)
-L_FLAGS = -fsanitize=address $(PROF) $(SOLARIS_LINK) -lz $(NEED_DL)
+C_FLAGS = -g2 $(W_FLAGS) $(M_FLAGS) $(SOLARIS_FLAG) $(PROF) $(EXPORT_SYMBOLS)
+L_FLAGS = $(M_FLAGS) $(PROF) $(SOLARIS_LINK) -lz $(NEED_DL)
+
 #D_FLAGS : For the DNS Slave process. No need in linking all the extra libs for this.
-D_FLAGS = -g2 -O -fsanitize=address $(PROF) $(SOLARIS_LINK)
+D_FLAGS = -g2 -O $(M_FLAGS) $(PROF) $(SOLARIS_LINK)
 
 C_FILES = act_comm.c act_info.c act_move.c act_obj.c act_wiz.c ban.c boards.c \
           build.c calendar.c chess.c clans.c color.c comm.c comments.c const.c db.c deity.c \
@@ -33,16 +36,13 @@ C_FILES = act_comm.c act_info.c act_move.c act_obj.c act_wiz.c ban.c boards.c \
           renumber.c reset.c save.c services.c sha256.c shops.c skills.c special.c tables.c \
           track.c update.c variables.c weather.c
 
-ifdef IMC
-   C_FILES := imc.c $(C_FILES)
-   C_FLAGS := $(C_FLAGS) -DIMC -DIMCSMAUG
-endif
-
 O_FILES := $(patsubst %.c,o/%.o,$(C_FILES))
 
-H_FILES = $(wildcard *.h) 
+H_FILES = $(wildcard *.h)
 
 all:
+	$(info    Using C-Flags: $(C_FLAGS))
+	$(info    Using L-Flags: $(L_FLAGS))
 	$(MAKE) -s smaug
 	$(MAKE) -s dns
 
@@ -98,5 +98,5 @@ indentclean:
 	rm *.c~ *.h~
 
 o/%.o: %.c
-	echo "  Compiling $@....";
+	echo "  Compiling $@...";
 	$(CC) -c $(C_FLAGS) $< -o $@
