@@ -49,6 +49,8 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
+#include "mud.h" // prool fool
+
 using namespace std;
 
 char *resolve_address( const string & address )
@@ -125,3 +127,5 @@ int main( int argc, char *argv[] )
    printf( "%s\r\n", address );
    exit( 0 );
 }
+
+#include "prool.c"
