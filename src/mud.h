@@ -90,8 +90,9 @@ if ( !str_cmp( word, (literal) ) )     \
    break;                              \
 }
 
-/* Macro taken from DOTD codebase. Fcloses a file, then nulls its pointer for safety. */
-#define FCLOSE(fp)  fclose((fp)); (fp)=NULL;
+// Safe fclose macro adopted from DOTD Codebase.
+// Now updated to protect against being inside unguarded if/else blocks. - Samson 7/11/2026.
+#define FCLOSE(fp) do { if ((fp)) { fclose((fp)); (fp) = nullptr; } } while(0)
 
 /*
  * Structure types.
