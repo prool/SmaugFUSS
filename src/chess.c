@@ -136,22 +136,18 @@ static void init_board( GAME_BOARD_DATA * board )
 
 static bool find_piece( GAME_BOARD_DATA * board, int *x, int *y, int piece )
 {
-   int a, b;
-
-   for( a = 0; a < 8; a++ )
+   for( int a = 0; a < 8; ++a )
    {
-      for( b = 0; b < 8; b++ )
+      for( int b = 0; b < 8; ++b )
+      {
          if( board->board[a][b] == piece )
-            break;
-      if( board->board[a][b] == piece )
-         break;
+         {
+            *x = a;
+            *y = b;
+            return TRUE;
+         }
+      }
    }
-
-   *x = a;
-   *y = b;
-
-   if( board->board[a][b] == piece )
-      return TRUE;
    return FALSE;
 }
 
