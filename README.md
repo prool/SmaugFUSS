@@ -92,6 +92,6 @@ You can change the default port the MUD operates on by editing the startup.sh sc
 First Immortal
 ==============
 
-A pfile named "Admin" is included, with password "admin". Use this account to log in for the first time. You should then rename this player to something else and CHANGE THE PASSWORD.
+A pfile named "Admin" is included, with password "admin". Use this account to log in for the first time. You should then rename this player to something else and CHANGE THE PASSWORD. You can do this once you log on by using the "newpass" command.
 
 Alternatively, connect a new player and use the Admin player to advance the new one. When this is done, be sure to DELETE the Admin player.
