@@ -5135,7 +5135,3 @@ OBJ_DATA *trvobj_wnext( TRV_WORLD * );
 /* Global lists adjusting after a node removal */
 void trworld_char_check( CHAR_DATA * );
 void trworld_obj_check( OBJ_DATA * );
-
-// prool:
-size_t strlcpy(char *dst, const char *src, size_t siz);
-size_t strlcat(char *dst, const char *src, size_t siz);

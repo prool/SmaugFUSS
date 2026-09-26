@@ -3585,5 +3585,3 @@ void do_racetalk( CHAR_DATA* ch, const char* argument )
    }
    talk_channel( ch, argument, CHANNEL_RACETALK, "racetalk" );
 }
-
-#include "prool.c"
