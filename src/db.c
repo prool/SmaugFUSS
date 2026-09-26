@@ -712,8 +712,6 @@ void boot_db( bool fCopyOver )
    log_string( "Fixing exits" );
    fix_exits(  );
    fBootDb = FALSE;
-   log_string( "Initializing economy" );
-   initialize_economy(  );
 
    if( fCopyOver )
    {
@@ -723,6 +721,9 @@ void boot_db( bool fCopyOver )
 
    log_string( "Resetting areas" );
    area_update(  );
+
+   log_string( "Initializing economy" );
+   initialize_economy(  );
 
    log_string( "Loading buildlist" );
    load_buildlist(  );
@@ -1856,7 +1857,7 @@ void load_smaugwiz_reset( ROOM_INDEX_DATA * room, FILE * fp )
          if( arg4 > 0 )
          {
             if( get_obj_index( arg4 ) == NULL && fBootDb )
-               boot_log( "$s: SmaugWiz - %s (%d) 'P': destination object %d doesn't exist.", __func__,
+               boot_log( "%s: SmaugWiz - %s (%d) 'P': destination object %d doesn't exist.", __func__,
                          room->area->filename, count, arg4 );
          }
          break;
@@ -2399,7 +2400,7 @@ void load_climate( AREA_DATA * tarea, FILE * fp )
 
 /*
  * With the new Weather System, these are unneeded as the weather is it's own
- * entity seperated from everything else. - Kayle 10-17-07
+ * entity separated from everything else. - Kayle 10-17-07
  */
 void load_neighbor( AREA_DATA * tarea, FILE * fp )
 {

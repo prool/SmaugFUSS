@@ -2788,9 +2788,9 @@ ch_ret pullcheck( CHAR_DATA * ch, int pulse )
       case PULL_VORTEX:
          tochar = "You are sucked into a swirling vortex of colors!";
          toroom = "$n is sucked into a swirling vortex of colors!";
-         toroom = "$n appears from a swirling vortex of colors!";
+         destrm = "$n appears from a swirling vortex of colors!";
          objmsg = "$p is sucked into a swirling vortex of colors!";
-         objmsg = "$p appears from a swirling vortex of colors!";
+         destob = "$p appears from a swirling vortex of colors!";
          break;
       case PULL_HOTAIR:
          tochar = "A blast of hot air blows you $T!";
@@ -2827,7 +2827,7 @@ ch_ret pullcheck( CHAR_DATA * ch, int pulse )
             toroom = "$n is pulled $T.";
             destrm = "$n is pulled in from $T.";
             objmsg = "$p is pulled $T.";
-            objmsg = "$p is pulled in from $T.";
+            destob = "$p is pulled in from $T.";
          }
          else
          {
@@ -2835,7 +2835,7 @@ ch_ret pullcheck( CHAR_DATA * ch, int pulse )
             toroom = "$n is pushed $T.";
             destrm = "$n is pushed in from $T.";
             objmsg = "$p is pushed $T.";
-            objmsg = "$p is pushed in from $T.";
+            destob = "$p is pushed in from $T.";
          }
          break;
    }
